@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix France - Regardez des films et séries en streaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .hero-gradient {
+            background: rgba(0, 0, 0, 0.4);
+            background-image: linear-gradient(
+                to top,
+                rgba(0, 0, 0, 0.8) 0,
+                rgba(0, 0, 0, 0) 60%,
+                rgba(0, 0, 0, 0.8) 100%
+            );
+        }
+        
+        .nav-transition {
+            transition: all 0.5s ease;
+        }
+        
+        .card-hover {
+            transition: transform 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        
+        .dropdown-menu {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .input-focus:focus + .input-label {
+            transform: translateY(-1.5rem) scale(0.75);
+        }
+        
+        .input-filled + .input-label {
+            transform: translateY(-1.5rem) scale(0.75);
+        }
+        
+        .carousel {
+            scroll-snap-type: x mandatory;
+        }
+        
+        .carousel-item {
+            scroll-snap-align: start;
+        }
+        
+        /* Custom scrollbar for browsers that support it */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 2px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-black text-white font-sans">
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 nav-transition" id="mainNav">
+        <div class="flex items-center justify-between px-4 py-3 md:px-12">
+            <div class="flex items-center">
+                <a href="#" class="text-red-600 font-bold text-3xl">NETFLIX</a>
+                <div class="ml-8 hidden md:block">
+                    <ul class="flex space-x-4">
+                        <li class="dropdown relative">
+                            <button class="flex items-center text-sm hover:text-gray-300">
+                                <span>Accueil</span>
+                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                            </button>
+                            <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-black bg-opacity-90 rounded shadow-lg py-1">
+                                <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800">Accueil</a>
+                                <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800">Séries</a>
+                                <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800">Films</a>
+                            </div>
+                        </li>
+                        <li><a href="#" class="text-sm hover:text-gray-300">Séries</a></li>
+                        <li><a href="#" class="text-sm hover:text-gray-300">Films</a></li>
+                        <li><a href="#" class="text-sm hover:text-gray-300">Nouveautés les plus regardées</a></li>
+                        <li><a href="#" class="text-sm hover:text-gray-300">Ma liste</a></li>
+                        <li><a href="#" class="text-sm hover:text-gray-300">Parcourir par langue</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative hidden md:block">
+                    <button id="searchBtn" class="flex items-center">
+                        <i class="fas fa-search mr-2"></i>
+                        <span class="text-sm">Rechercher</span>
+                    </button>
+                    <div id="searchBox" class="hidden absolute right-0 mt-2 w-64 bg-black bg-opacity-90 p-2 rounded">
+                        <input type="text" placeholder="Titres, personnes, genres" class="w-full bg-gray-800 px-3 py-1 rounded text-sm">
+                    </div>
+                </div>
+                <div class="dropdown relative">
+                    <button class="flex items-center text-sm">
+                        <i class="fas fa-bell mr-2"></i>
+                    </button>
+                    <div class="dropdown-menu absolute right-0 mt-2 w-64 bg-black bg-opacity-90 rounded shadow-lg py-1">
+                        <div class="px-4 py-2 text-sm font-semibold">Notifications</div>
+                        <div class="px-4 py-2 text-xs text-gray-400">Vous n'avez pas de nouvelles notifications</div>
+                    </div>
+                </div>
+                <div class="dropdown relative">
+                    <button class="flex items-center">
+                        <div class="w-8 h-8 rounded bg-red-600 flex items-center justify-center">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </button>
+                    <div class="dropdown-menu absolute right-0 mt-2 w-48 bg-black bg-opacity-90 rounded shadow-lg py-1">
+                        <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800">Compte</a>
+                        <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800">Centre d'aide</a>
+                        <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-800">Se déconnecter</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen">
+        <div class="absolute inset-0 overflow-hidden">
+            <img src="https://assets.nflxext.com/ffe/siteui/vlv3/9d3533b2-0e2b-40b2-95e0-ecd7979cc88b/a3873901-5b7c-46eb-b9fa-12fea5197bd3/FR-fr-20240311-popsignuptwoweeks-perspective_alpha_website_large.jpg" 
+                 alt="Netflix Hero Background" 
+                 class="w-full h-full object-cover">
+            <div class="absolute inset-0 hero-gradient"></div>
+        </div>
+        
+        <div class="relative h-full flex flex-col justify-center items-center text-center px-4 md:px-12">
+            <div class="max-w-3xl mx-auto">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4">Films, séries et bien plus en illimité.</h1>
+                <h2 class="text-xl md:text-2xl mb-6">Où que vous soyez. Annulez à tout moment.</h2>
+                <p class="text-lg mb-8">Prêt à regarder Netflix ? Saisissez votre adresse e-mail pour vous abonner ou réactiver votre abonnement.</p>
+                
+                <div class="flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
+                    <div class="relative flex-grow">
+                        <input type="email" id="email" class="w-full bg-black bg-opacity-70 border border-gray-600 rounded px-4 py-4 input-focus" required>
+                        <label for="email" class="input-label absolute left-4 top-4 text-gray-400 pointer-events-none transition-all duration-200">Adresse e-mail</label>
+                    </div>
+                    <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded flex items-center justify-center">
+                        <span>Commencer</span>
+                        <i class="fas fa-chevron-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content Sections -->
+    <div class="py-12 px-4 md:px-12 space-y-12">
+        <!-- Section 1 -->
+        <section>
+            <h3 class="text-xl md:text-2xl font-bold mb-4">Regardez Netflix sur votre TV</h3>
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+                    <p class="text-lg">Regardez Netflix sur votre Smart TV, PlayStation, Xbox, Chromecast, Apple TV, lecteurs Blu-ray et bien plus.</p>
+                </div>
+                <div class="md:w-1/2 relative">
+                    <img src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/tv.png" alt="TV" class="w-full relative z-10">
+                    <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                        <video autoplay playsinline muted loop class="w-3/4">
+                            <source src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/video-tv-0819.m4v" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section>
+            <h3 class="text-xl md:text-2xl font-bold mb-4">Téléchargez vos séries préférées pour les regarder hors connexion</h3>
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 order-2 md:order-1 mb-8 md:mb-0 md:pr-8">
+                    <p class="text-lg">Enregistrez vos programmes préférés et ayez toujours quelque chose à regarder.</p>
+                </div>
+                <div class="md:w-1/2 order-1 md:order-2 relative">
+                    <img src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/mobile-0819.jpg" alt="Mobile" class="w-full relative z-10">
+                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-black border border-gray-600 rounded-lg p-2 flex items-center w-3/4">
+                        <img src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/boxshot.png" alt="Stranger Things" class="h-16 mr-4">
+                        <div class="flex-grow">
+                            <div class="font-bold">Stranger Things</div>
+                            <div class="text-blue-400 text-sm">Téléchargement en cours...</div>
+                        </div>
+                        <div class="w-8 h-8">
+                            <img src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/download-icon.gif" alt="Downloading" class="w-full h-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section>
+            <h3 class="text-xl md:text-2xl font-bold mb-4">Où que vous soyez</h3>
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+                    <p class="text-lg">Regardez des films et séries en streaming sur votre téléphone, tablette, ordinateur et TV sans payer plus.</p>
+                </div>
+                <div class="md:w-1/2 relative">
+                    <img src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/device-pile.png" alt="Devices" class="w-full relative z-10">
+                    <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                        <video autoplay playsinline muted loop class="w-3/4">
+                            <source src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/video-devices.m4v" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4 -->
+        <section>
+            <h3 class="text-xl md:text-2xl font-bold mb-4">Créez des profils pour les enfants</h3>
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 order-2 md:order-1 mb-8 md:mb-0 md:pr-8">
+                    <p class="text-lg">Les enfants découvrent de nouvelles aventures et retrouvent leurs personnages préférés dans un espace bien à eux, déjà inclus dans votre abonnement.</p>
+                </div>
+                <div class="md:w-1/2 order-1 md:order-2">
+                    <img src="https://occ-0-2774-2773.1.nflxso.net/dnm/api/v6/19OhWN2dO19C9txTON9tvTFtefw/AAAABYjXrxZKtrzxQRVQNn2aIByoomnlbXmJ-uBy7du8a5Si3xqIsgerTlwJZG1vMpqer2kvcILy0UJQnjfRUQ5cEr7gQlYqXfxUg7bz.png?r=420" alt="Kids" class="w-full">
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- FAQ Section -->
+    <section class="py-12 px-4 md:px-12 max-w-4xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8">Foire aux questions</h2>
+        
+        <div class="space-y-2">
+            <!-- FAQ Item 1 -->
+            <div class="faq-item bg-gray-800 rounded">
+                <button class="faq-question w-full text-left px-6 py-4 flex justify-between items-center">
+                    <span class="text-lg">Netflix, qu'est-ce que c'est ?</span>
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="faq-answer px-6 pb-4 hidden">
+                    <p class="text-gray-300">Netflix est un service de streaming qui propose une vaste sélection de séries, films, animes, documentaires et autres programmes primés sur des milliers d'appareils connectés à Internet.</p>
+                    <p class="text-gray-300 mt-2">Regardez tout ce que vous voulez, quand vous voulez, sans publicité et à un tarif mensuel très attractif. Découvrez de nouveaux films et séries chaque semaine, il y en a pour tous les goûts !</p>
+                </div>
+            </div>
+            
+            <!-- FAQ Item 2 -->
+            <div class="faq-item bg-gray-800 rounded">
+                <button class="faq-question w-full text-left px-6 py-4 flex justify-between items-center">
+                    <span class="text-lg">Combien coûte Netflix ?</span>
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="faq-answer px-6 pb-4 hidden">
+                    <p class="text-gray-300">Regardez Netflix sur votre smartphone, tablette, Smart TV, ordinateur ou appareil de streaming, le tout pour un tarif mensuel fixe. Les forfaits vont de 8,99 € à 17,99 € par mois. Pas de contrat ni de frais supplémentaires.</p>
+                </div>
+            </div>
+            
+            <!-- FAQ Item 3 -->
+            <div class="faq-item bg-gray-800 rounded">
+                <button class="faq-question w-full text-left px-6 py-4 flex justify-between items-center">
+                    <span class="text-lg">Où puis-je regarder Netflix ?</span>
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="faq-answer px-6 pb-4 hidden">
+                    <p class="text-gray-300">Netflix, c'est où vous voulez, quand vous voulez. Connectez-vous à votre compte pour regarder Netflix en ligne sur netflix.com depuis votre ordinateur ou tout appareil connecté à Internet avec l'application Netflix, comme les Smart TV, smartphones, tablettes, lecteurs de streaming et consoles de jeu.</p>
+                    <p class="text-gray-300 mt-2">Vous pouvez aussi télécharger vos séries préférées avec l'application iOS, Android ou Windows 10. Téléchargez des titres pour les regarder sur votre appareil mobile, même sans connexion Internet. Emportez Netflix partout avec vous.</p>
+                </div>
+            </div>
+            
+            <!-- FAQ Item 4 -->
+            <div class="faq-item bg-gray-800 rounded">
+                <button class="faq-question w-full text-left px-6 py-4 flex justify-between items-center">
+                    <span class="text-lg">Comment puis-je annuler mon forfait ?</span>
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="faq-answer px-6 pb-4 hidden">
+                    <p class="text-gray-300">Netflix offre une grande souplesse. Pas de contrat compliqué. Sans engagement. Deux clics suffisent pour annuler votre compte en ligne. Pas de frais d'annulation : ouvrez ou fermez votre compte à tout moment.</p>
+                </div>
+            </div>
+            
+            <!-- FAQ Item 5 -->
+            <div class="faq-item bg-gray-800 rounded">
+                <button class="faq-question w-full text-left px-6 py-4 flex justify-between items-center">
+                    <span class="text-lg">Que puis-je regarder sur Netflix ?</span>
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="faq-answer px-6 pb-4 hidden">
+                    <p class="text-gray-300">Netflix propose un vaste catalogue comprenant notamment des longs métrages, des documentaires, des séries, des animes et des programmes originaux Netflix primés. Regardez Netflix à volonté, quand vous le voulez.</p>
+                </div>
+            </div>
+            
+            <!-- FAQ Item 6 -->
+            <div class="faq-item bg-gray-800 rounded">
+                <button class="faq-question w-full text-left px-6 py-4 flex justify-between items-center">
+                    <span class="text-lg">Est-ce que Netflix est adapté aux enfants ?</span>
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="faq-answer px-6 pb-4 hidden">
+                    <p class="text-gray-300">Netflix Jeunesse est inclus dans votre abonnement et offre un meilleur contrôle aux parents, ainsi qu'un espace dédié aux enfants, avec des films et des séries destinés à toute la famille.</p>
+                    <p class="text-gray-300 mt-2">Les profils Enfants comportent des fonctionnalités de contrôle parental avec code PIN permettant de modifier la catégorie d'âge des contenus que vos enfants peuvent regarder et de bloquer des titres spécifiques.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+            <p class="text-lg mb-6">Prêt à regarder Netflix ? Saisissez votre adresse e-mail pour vous abonner ou réactiver votre abonnement.</p>
+            <div class="flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
+                <div class="relative flex-grow">
+                    <input type="email" id="email2" class="w-full bg-black bg-opacity-70 border border-gray-600 rounded px-4 py-4 input-focus" required>
+                    <label for="email2" class="input-label absolute left-4 top-4 text-gray-400 pointer-events-none transition-all duration-200">Adresse e-mail</label>
+                </div>
+                <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded flex items-center justify-center">
+                    <span>Commencer</span>
+                    <i class="fas fa-chevron-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black text-gray-400 py-12 px-4 md:px-12">
+        <div class="max-w-6xl mx-auto">
+            <p class="mb-6">Des questions ? Appelez le <a href="tel:0805-543-063" class="hover:underline">0805-543-063</a></p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div><a href="#" class="text-sm hover:underline">FAQ</a></div>
+                <div><a href="#" class="text-sm hover:underline">Centre d'aide</a></div>
+                <div><a href="#" class="text-sm hover:underline">Compte</a></div>
+                <div><a href="#" class="text-sm hover:underline">Presse</a></div>
+                <div><a href="#" class="text-sm hover:underline">Relations Investisseurs</a></div>
+                <div><a href="#" class="text-sm hover:underline">Recrutement</a></div>
+                <div><a href="#" class="text-sm hover:underline">Utiliser des cartes cadeaux</a></div>
+                <div><a href="#" class="text-sm hover:underline">Acheter des cartes cadeaux</a></div>
+                <div><a href="#" class="text-sm hover:underline">Modes de lecture</a></div>
+                <div><a href="#" class="text-sm hover:underline">Conditions d'utilisation</a></div>
+                <div><a href="#" class="text-sm hover:underline">Confidentialité</a></div>
+                <div><a href="#" class="text-sm hover:underline">Préférences de cookies</a></div>
+                <div><a href="#" class="text-sm hover:underline">Mentions légales</a></div>
+                <div><a href="#" class="text-sm hover:underline">Nous contacter</a></div>
+                <div><a href="#" class="text-sm hover:underline">Test de vitesse</a></div>
+                <div><a href="#" class="text-sm hover:underline">Garantie légale</a></div>
+                <div><a href="#" class="text-sm hover:underline">Informations légales</a></div>
+                <div><a href="#" class="text-sm hover:underline">Seulement sur Netflix</a></div>
+            </div>
+            
+            <div class="mb-6">
+                <div class="relative inline-block w-40">
+                    <select class="block appearance-none w-full bg-gray-900 border border-gray-600 text-white py-2 px-4 pr-8 rounded leading-tight focus:outline-none">
+                        <option>Français</option>
+                        <option>English</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-sm">Netflix France</p>
+        </div>
+    </footer>
+
+    <!-- Movie Carousel (Hidden by default, would be shown when browsing content) -->
+    <div id="movieCarousel" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden">
+        <div class="absolute top-4 right-4">
+            <button id="closeCarousel" class="text-white text-3xl">&times;</button>
+        </div>
+        <div class="h-full flex items-center justify-center px-4">
+            <div class="max-w-4xl w-full">
+                <div class="aspect-w-16 aspect-h-9 bg-gray-900 rounded overflow-hidden">
+                    <video controls class="w-full h-full">
+                        <source src="https://example.com/sample-video.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="mt-4 text-white">
+                    <h3 class="text-2xl font-bold">Stranger Things</h3>
+                    <div class="flex space-x-4 mt-2">
+                        <span class="text-green-500 font-semibold">97% Match</span>
+                        <span>2022</span>
+                        <span class="border border-gray-400 px-1 text-xs">16+</span>
+                        <span>3 saisons</span>
+                        <span class="border border-gray-400 px-1 text-xs">HD</span>
+                    </div>
+                    <div class="mt-4 flex space-x-4">
+                        <button class="bg-white text-black px-4 py-1 rounded flex items-center">
+                            <i class="fas fa-play mr-2"></i> Lecture
+                        </button>
+                        <button class="bg-gray-600 bg-opacity-70 text-white px-4 py-1 rounded flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Ma liste
+                        </button>
+                    </div>
+                    <p class="mt-4">Quand un jeune garçon disparaît, une petite ville découvre une affaire mystérieuse, des expériences secrètes, des forces surnaturelles terrifiantes... et une fillette.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple jQuery-like functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navbar scroll effect
+            window.addEventListener('scroll', function() {
+                const nav = document.getElementById('mainNav');
+                if (window.scrollY > 100) {
+                    nav.classList.add('bg-black');
+                    nav.classList.remove('bg-gradient-to-b', 'from-black');
+                } else {
+                    nav.classList.remove('bg-black');
+                    nav.classList.add('bg-gradient-to-b', 'from-black');
+                }
+            });
+
+            // Search toggle
+            const searchBtn = document.getElementById('searchBtn');
+            const searchBox = document.getElementById('searchBox');
+            if (searchBtn && searchBox) {
+                searchBtn.addEventListener('click', function() {
+                    searchBox.classList.toggle('hidden');
+                });
+            }
+
+            // FAQ accordion
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', function() {
+                    const answer = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    // Toggle answer
+                    answer.classList.toggle('hidden');
+                    
+                    // Toggle icon
+                    if (answer.classList.contains('hidden')) {
+                        icon.classList.remove('fa-minus');
+                        icon.classList.add('fa-plus');
+                    } else {
+                        icon.classList.remove('fa-plus');
+                        icon.classList.add('fa-minus');
+                    }
+                    
+                    // Close other open answers
+                    faqQuestions.forEach(q => {
+                        if (q !== question) {
+                            q.nextElementSibling.classList.add('hidden');
+                            q.querySelector('i').classList.remove('fa-minus');
+                            q.querySelector('i').classList.add('fa-plus');
+                        }
+                    });
+                });
+            });
+
+            // Input label animation
+            const inputs = document.querySelectorAll('.input-focus');
+            inputs.forEach(input => {
+                // Check if input has value on load
+                if (input.value) {
+                    input.classList.add('input-filled');
+                }
+                
+                input.addEventListener('input', function() {
+                    if (this.value) {
+                        this.classList.add('input-filled');
+                    } else {
+                        this.classList.remove('input-filled');
+                    }
+                });
+            });
+
+            // Movie carousel
+            const closeCarousel = document.getElementById('closeCarousel');
+            if (closeCarousel) {
+                closeCarousel.addEventListener('click', function() {
+                    document.getElementById('movieCarousel').classList.add('hidden');
+                });
+            }
+
+            // Simulate clicking on a movie card would open the carousel
+            const movieCards = document.querySelectorAll('.card-hover');
+            movieCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    document.getElementById('movieCarousel').classList.remove('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

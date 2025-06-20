@@ -1,0 +1,38 @@
+
+.hero {
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(41, 128, 185, 0.7);
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.hero-overlay {
+    background-color: rgba(41, 128, 185, 0.7);
+    z-index: 0;
+}
+
+.hero h1 {
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card {
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #004d99;
+}
