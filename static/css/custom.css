@@ -20,6 +20,14 @@ body {
     background-color: var(--white); /* Fond principal blanc */
 }
 
+header{
+    background-image: url('../img/bg_agency_home_pproject.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+}
+
 h1, h2, h3, h4, h5, h6, .navbar-brand, .card-title, .footer-title {
     font-family: 'Poppins', sans-serif;
     color: var(--secondary-color); /* Titres en Bleu */
@@ -94,11 +102,12 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .card-title, .footer-title {
     padding-top: 80px;
     position: relative;
     overflow: hidden;
+   
 }
 
 .hero-overlay {
      /* Overlay bleu foncé sur la vidéo */
-    background-color: rgba(41, 128, 185, 0.7); /* --dark-blue avec alpha */
+    /* background-color: rgba(41, 128, 185, 0.7);  --dark-blue avec alpha */
     z-index: 0;
 }
 
