@@ -1,0 +1,74 @@
+{% if self.use_video and self.background_video %}
+  <div class="background-video">
+    {{ self.background_video }}
+  </div>
+{% endif %}
+
+<div class="content">
+  <h1 class="title">{{ self.title }}</h1>
+  <h2 class="subtitle">{{ self.subtitle }}</h2>
+
+  <div class="buttons">
+    {% for button in self.buttons %}
+      <a href="{{ button.url }}" class="button">{{ button.text }}</a>
+    {% endfor %}
+  </div>
+</div>
+<style>
+    /* Style pour la vidéo de fond */
+.background-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.background-video video {
+  min-width: 100%;
+  min-height: 100%;
+  object-fit: cover;
+}
+
+/* Style pour le contenu */
+.content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 20px;
+  color: #fff; /* Couleur du texte */
+}
+
+.title {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+/* Style pour les boutons */
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.button {
+  padding: 10px 20px;
+  background-color: #007BFF;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #0056b3;
+}
+</style>
+

@@ -1,0 +1,499 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Roboto:wght@400;500&display=swap');
+
+/* Variables de couleur - Nouvelle Palette */
+:root {
+    --primary-color: #F39C12; /* Orange vif pour CTA et accents */
+    --secondary-color: #3498DB; /* Bleu standard pour titres et éléments secondaires */
+    --dark-blue: #2980B9; /* Bleu plus foncé pour fonds (navbar, footer) */
+    --text-color: #333333; /* Gris foncé pour texte principal */
+    --light-gray: #f8f9fa; /* Gris très clair pour fonds alternés */
+    --white: #FFFFFF;
+    --dark-text-on-blue: #f0f0f0; /* Texte clair mais pas blanc pur sur fond bleu foncé */
+}
+
+/* Styles Généraux */
+body {
+    font-family: 'Roboto', sans-serif;
+    color: var(--text-color);
+    line-height: 1.6;
+    background-color: var(--white); /* Fond principal blanc */
+}
+
+header{
+    /* background-image: url('../img/bg_agency_home_pproject.jpg'); */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+}
+
+h1, h2, h3, h4, h5, h6, .navbar-brand, .card-title, .footer-title {
+    font-family: 'Poppins', sans-serif;
+    color: var(--secondary-color); /* Titres en Bleu */
+    font-weight: 600;
+}
+
+.section-title {
+    color: var(--secondary-color); /* Titres de section en Bleu */
+    margin-bottom: 3rem !important;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--primary-color); /* Soulignement en Orange */
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Navbar Custom */
+.navbar-custom {
+    /* Utilisation du bleu foncé avec légère transparence */
+    background-color: rgba(41, 128, 185, 0.95) !important; /* --dark-blue avec alpha */
+    transition: background-color 0.3s ease;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+.navbar-custom .navbar-brand {
+    color: var(--white); /* Logo/Texte en Blanc */
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+.navbar-custom .navbar-brand img {
+    margin-right: 10px;
+     /* Si logo blanc sur fond bleu, pas besoin de filtre. Si logo couleur, ok */
+}
+.navbar-custom .nav-link {
+    color: rgba(255, 255, 255, 0.85); /* Liens en blanc légèrement transparent */
+    margin-left: 15px;
+    transition: color 0.3s ease;
+    font-weight: 500;
+}
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active {
+    color: var(--white); /* Liens actifs/hover en Blanc */
+}
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.navbar-toggler-icon {
+     /* Conserve l'icône hamburger blanche */
+     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+/* Navbar scroll effect adjustment */
+.navbar-scrolled { /* Classe ajoutée par JS (ou manuellement si besoin) */
+    background-color: var(--dark-blue) !important; /* Devient complètement opaque au scroll */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+
+/* Hero Section */
+.hero-section {
+    min-height: 90vh;
+    padding-top: 80px;
+    position: relative;
+    overflow: hidden;
+   
+}
+
+.hero-overlay {
+     /* Overlay bleu foncé sur la vidéo */
+    /* background-color: rgba(41, 128, 185, 0.7);  --dark-blue avec alpha */
+    z-index: 0;
+}
+
+#bg-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+}
+
+.hero-title {
+    font-size: calc(1.8rem + 2vw);
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+    color: var(--white); /* Titre en blanc */
+}
+.hero-subtitle {
+    font-size: calc(1rem + 0.5vw);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.9); /* Sous-titre en blanc légèrement transparent */
+}
+
+
+/* Boutons CTA */
+.btn-primary {
+    background-color: var(--primary-color); /* Bouton principal en Orange */
+    border-color: var(--primary-color);
+    color: var(--white); /* Texte du bouton en Blanc */
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+.btn-primary:hover {
+    background-color: #e67e22; /* Orange plus foncé au survol */
+    border-color: #e67e22;
+    color: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Bouton outline-light (sur Hero) */
+.btn-outline-light {
+     border-width: 2px;
+     font-weight: 500;
+     padding: 0.75rem 1.5rem;
+     color: var(--white); /* Texte blanc */
+     border-color: var(--white); /* Bordure blanche */
+     transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+.btn-outline-light:hover {
+    background-color: var(--white); /* Fond blanc au survol */
+    color: var(--dark-blue); /* Texte en bleu foncé au survol */
+    transform: translateY(-2px);
+}
+
+/* Bouton outline-primary (ailleurs) */
+.btn-outline-primary {
+    color: var(--primary-color); /* Texte orange */
+    border-color: var(--primary-color); /* Bordure orange */
+}
+.btn-outline-primary:hover {
+    color: var(--white); /* Texte blanc au survol */
+    background-color: var(--primary-color); /* Fond orange au survol */
+    border-color: var(--primary-color);
+}
+
+
+/* Section Services */
+#services {
+    background-color: var(--light-gray); /* Fond gris clair pour cette section */
+}
+.service-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: var(--white); /* Cartes sur fond blanc */
+    border: 1px solid #eee; /* Bordure légère */
+}
+.service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15) !important; /* Ombre avec teinte bleue */
+}
+.icon-circle {
+    width: 70px;
+    height: 70px;
+    /* Fond bleu clair pour l'icône */
+    background-color: #eaf2f8; /* Version très claire de --secondary-color */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+.icon-circle i {
+     color: var(--secondary-color); /* Icône en Bleu */
+     transition: color 0.3s ease;
+}
+.service-card:hover .icon-circle {
+    background-color: var(--primary-color); /* Cercle devient Orange au survol */
+}
+.service-card:hover .icon-circle i {
+    color: var(--white) !important; /* Icône en blanc au survol */
+}
+.service-card .hover-text {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out 0.1s;
+}
+.service-card:hover .initial-text {
+    display: none;
+}
+.service-card:hover .hover-text {
+    display: block;
+    opacity: 1;
+}
+/* Ajustement pour forcer la couleur initiale si text-primary est utilisé dans le HTML */
+.service-card .text-primary {
+    color: var(--secondary-color) !important; /* Force l'icône initiale en Bleu */
+}
+
+
+/* Section Clients */
+#clients {
+    background-color: var(--white); /* Fond blanc */
+}
+.client-logo {
+    max-height: 60px;
+    filter: grayscale(100%);
+    opacity: 0.6; /* Légèrement plus visible */
+    transition: filter 0.3s ease, opacity 0.3s ease;
+}
+.client-logo:hover {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(0.5) brightness(0.8); /* Flèches grises plus sombres */
+}
+.testimonial blockquote {
+    font-style: italic;
+    color: #555;
+    border-left: 4px solid var(--primary-color); /* Bordure de citation Orange */
+    padding-left: 1.5rem;
+}
+.testimonial blockquote p {
+    font-size: 1.1rem;
+}
+.testimonial figcaption {
+    margin-top: 1rem;
+    font-weight: 500;
+    color: var(--secondary-color); /* Nom du témoin en Bleu */
+}
+.testimonial cite {
+    color: #777;
+    font-style: normal;
+}
+
+/* Section Blog */
+#blog {
+     background-color: var(--light-gray); /* Fond gris clair */
+}
+.blog-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--white);
+    border: 1px solid #eee;
+}
+.blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.1) !important; /* Ombre bleutée */
+}
+.blog-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+/* Le bouton Lire la suite utilise .btn-outline-primary déjà stylé */
+
+
+/* Footer */
+footer {
+    background-color: var(--dark-blue) !important; /* Fond Footer en Bleu Foncé */
+    color: var(--dark-text-on-blue); /* Texte général du footer */
+}
+.footer-title, .footer-subtitle {
+    color: var(--white); /* Titres en blanc */
+}
+.footer-links li a {
+    color: rgba(255, 255, 255, 0.7); /* Liens légèrement transparents */
+    transition: color 0.3s ease, padding-left 0.3s ease;
+    display: inline-block;
+}
+.footer-links li a:hover {
+    color: var(--primary-color); /* Liens deviennent Orange au survol */
+    padding-left: 5px;
+    text-decoration: none;
+}
+/* Icônes contact (téléphone, email, map) */
+footer .list-unstyled i.text-primary {
+    color: var(--primary-color) !important; /* Force les icônes de contact en Orange */
+}
+/* Icônes réseaux sociaux */
+.social-icon {
+    color: rgba(255, 255, 255, 0.8) !important; /* Icônes sociales blanches/transparentes */
+    text-decoration: none;
+}
+.social-icon i {
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+.social-icon:hover i {
+    color: var(--primary-color) !important; /* Icônes sociales Orange au survol */
+    transform: scale(1.2);
+}
+footer hr {
+    border-color: rgba(255, 255, 255, 0.15) !important; /* Séparateur plus visible */
+}
+footer ::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9em;
+}
+/* Bouton newsletter dans le footer */
+footer .btn-primary {
+    /* Style déjà défini, s'assure qu'il s'applique bien ici */
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+footer .btn-primary:hover {
+     background-color: #e67e22;
+     border-color: #e67e22;
+}
+
+/* Portfolio Page */
+.portfolio-filters .btn.active {
+    background-color: var(--primary-color); /* Filtre actif en Orange */
+    color: white;
+    border-color: var(--primary-color);
+}
+.portfolio-filters .btn {
+     /* Utilise .btn-outline-primary stylé plus haut (orange) */
+     margin-bottom: 5px;
+}
+.portfolio-item {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.portfolio-card {
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #eee;
+}
+.portfolio-card .card-img-top {
+    transition: transform 0.4s ease;
+}
+.portfolio-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+.portfolio-card .card-body {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    /* Gradient Bleu */
+    background: linear-gradient(to top, rgba(41, 128, 185, 0.98), rgba(52, 152, 219, 0.8));
+    color: white;
+    padding: 1rem;
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+}
+.portfolio-card:hover .card-body {
+    transform: translateY(0);
+}
+.portfolio-card .card-title {
+    color: var(--white); /* Titre blanc sur l'overlay */
+    margin-bottom: 0.25rem;
+}
+.portfolio-card .card-text {
+    color: rgba(255, 255, 255, 0.8); /* Texte tag blanc/transparent */
+    margin-bottom: 0.75rem;
+}
+/* Bouton Voir détails (utilise .btn-primary déjà stylé orange) */
+.portfolio-card .btn-primary {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+}
+.portfolio-card .stretched-link::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    content: "";
+}
+
+/* Afficher/Cacher les éléments filtrés */
+.portfolio-item.hide { display: none; }
+.portfolio-item.show { display: block; animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+/* Modal Portfolio */
+.modal-header {
+    background-color: var(--secondary-color); /* Header modale en Bleu */
+    background-image: url('../img/bg-inventive-agency.png');
+
+    background-size: cover;       /* adapte l'image à la taille du header */
+    background-position: center;  /* centre l'image */
+    background-repeat: no-repeat; /* évite la répétition */
+    color: white;                 /* texte en blanc */
+}
+
+.modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+.modal-body h6 {
+    color: var(--secondary-color); /* Sous-titres modale en Bleu */
+}
+.modal-body blockquote {
+     border-left: 3px solid #eee;
+     padding-left: 1rem;
+     font-style: italic;
+     color: #555;
+     font-size: 0.95rem;
+}
+.modal-body #modalProjectTestimonial {
+     border-left: 3px solid var(--primary-color); /* Bordure témoignage en Orange */
+}
+
+/* Contact Page */
+.contact-page {
+    background-color: var(--white);
+}
+.contact-page label {
+    font-weight: 500;
+    color: #555;
+}
+.contact-page .form-control:focus, .contact-page .form-select:focus {
+    border-color: var(--primary-color); /* Bordure focus en Orange */
+    /* Box shadow focus en Orange */
+    box-shadow: 0 0 0 0.25rem rgba(243, 156, 18, 0.25);
+}
+.map-responsive iframe {
+     border-radius: 5px;
+     border: 1px solid #ddd; /* Légère bordure sur la carte */
+}
+/* Icônes coordonnées contact */
+.contact-page .bg-light i.text-primary {
+     color: var(--primary-color) !important; /* Icônes coordonnées en Orange */
+}
+
+
+/* Responsive Adjustments (Pas de changement de couleur ici, juste structure) */
+@media (max-width: 991.98px) {
+    .navbar-nav { margin-top: 1rem; }
+    .navbar-custom .nav-link { margin-left: 0; padding: 0.5rem 1rem; }
+    .hero-section { min-height: 70vh; }
+    .footer-title { text-align: center; }
+     .footer-links, footer .text-muted, footer .social-icon { text-align: center; }
+     footer .list-unstyled { padding-left: 0; }
+     footer .input-group { max-width: 400px; margin-left: auto; margin-right: auto; }
+      footer .col-lg-4.col-md-12 { text-align: center !important; }
+}
+
+@media (max-width: 767.98px) {
+    .hero-title { font-size: calc(1.6rem + 1.8vw); }
+    .hero-subtitle { font-size: calc(0.9rem + 0.4vw); }
+    .hero-section .btn { display: block; margin-left: auto !important; margin-right: auto !important; margin-bottom: 1rem; max-width: 250px; }
+     .hero-section .btn-outline-light { margin-bottom: 0; }
+     .client-logo { max-height: 45px; }
+     .portfolio-card .card-body { /* Garder l'overlay bleu sur mobile aussi */
+        /* position: absolute; */ /* Reste absolu */
+        /* transform: translateY(0); */ /* Reste caché par défaut */
+         /* Si on veut l'afficher direct sur mobile: */
+         /* position: relative; */
+         /* transform: translateY(0); */
+         /* background: var(--light-gray); */
+         /* color: var(--text-color); */
+     }
+     /* Si overlay reste caché, pas besoin de changer couleurs titre/texte sur mobile */
+     /* .portfolio-card .card-title { color: var(--secondary-color); } */
+     /* .portfolio-card .card-text { color: #6c757d; } */
+
+     .portfolio-card:hover .card-img-top { transform: none; } /* Désactiver zoom sur mobile */
+}

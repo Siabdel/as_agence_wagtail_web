@@ -1,0 +1,17 @@
+{% load wagtailimages_tags %}
+
+<header class="hero-section position-relative text-white text-center d-flex align-items-center justify-content-center"
+        style="height: 300px; background-image: url('{{ self.background_image.file.url }}'); background-size: cover;">
+    
+    <div class="hero-overlay position-absolute top-0 start-0 w-100 h-100"></div>
+       
+
+    <div class="container position-relative" style="z-index: 1;">
+        <h1 class="display-4 fw-bold mb-4 hero-title">{{ self.title }} </h1>
+        <p class="lead mb-5 hero-subtitle">{{ self.subtitle }}</p>
+        {% if self.button_url and self.button_text %}
+            <a href="{{ self.button_url }}" class="btn btn-primary btn-lg px-4 py-2">{{ self.button_text }}</a>
+        {% endif %}
+        <a href="#contacts" class="btn btn-outline-light btn-lg px-4 py-2" aria-label="Contactez-nous">Contactez-nous</a>
+    </div>
+</header>

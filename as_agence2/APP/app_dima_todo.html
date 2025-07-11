@@ -1,0 +1,997 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIMA Todo - Your Ultimate Task Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .task-completed {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+        .priority-high {
+            border-left: 4px solid #ef4444;
+        }
+        .priority-medium {
+            border-left: 4px solid #f59e0b;
+        }
+        .priority-low {
+            border-left: 4px solid #10b981;
+        }
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+        .slide-fade-enter-active {
+            transition: all 0.3s ease-out;
+        }
+        .slide-fade-leave-active {
+            transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+        }
+        .slide-fade-enter-from,
+        .slide-fade-leave-to {
+            transform: translateX(20px);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Landing Page Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4">DIMA Todo</h1>
+                    <p class="text-xl mb-8">The ultimate task management app that helps you stay organized and productive.</p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button @click="showApp = true" class="bg-white text-blue-600 hover:bg-blue-50 font-bold py-3 px-6 rounded-lg transition duration-300">
+                            Try It Now
+                        </button>
+                        <button class="border-2 border-white text-white hover:bg-white hover:bg-opacity-10 font-bold py-3 px-6 rounded-lg transition duration-300">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative w-64 h-96 bg-white rounded-3xl shadow-2xl overflow-hidden">
+                        <div class="absolute top-0 left-0 right-0 h-8 bg-gray-200 flex items-center px-3">
+                            <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <div class="pt-10 px-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800">Today</h3>
+                                <span class="text-sm text-gray-500">{{ new Date().toLocaleDateString() }}</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex items-center p-2 bg-blue-50 rounded">
+                                    <input type="checkbox" class="mr-2" checked>
+                                    <span class="text-gray-700 line-through">Buy groceries</span>
+                                </div>
+                                <div class="flex items-center p-2 bg-red-50 rounded border-l-4 border-red-500">
+                                    <input type="checkbox" class="mr-2">
+                                    <span class="text-gray-700">Finish project</span>
+                                </div>
+                                <div class="flex items-center p-2 bg-green-50 rounded border-l-4 border-green-500">
+                                    <input type="checkbox" class="mr-2">
+                                    <span class="text-gray-700">Call mom</span>
+                                </div>
+                                <div class="flex items-center p-2 bg-yellow-50 rounded border-l-4 border-yellow-500">
+                                    <input type="checkbox" class="mr-2">
+                                    <span class="text-gray-700">Schedule meeting</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="py-16 bg-white" v-if="!showApp">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Why Choose DIMA Todo?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition duration-300">
+                    <div class="text-blue-600 text-4xl mb-4">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Daily, Weekly & Monthly Views</h3>
+                    <p class="text-gray-600">Organize your tasks based on your preferred time frame with our intuitive calendar views.</p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition duration-300">
+                    <div class="text-green-600 text-4xl mb-4">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Smart Reminders</h3>
+                    <p class="text-gray-600">Never miss a deadline with customizable reminders and notifications.</p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition duration-300">
+                    <div class="text-purple-600 text-4xl mb-4">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Sync Across Devices</h3>
+                    <p class="text-gray-600">Access your tasks from anywhere with our cloud sync feature (coming soon).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Todo App (hidden by default) -->
+    <div id="app" class="min-h-screen" v-if="showApp">
+        <!-- App Header -->
+        <header class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold text-blue-600 flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i> DIMA Todo
+                    </h1>
+                    <div class="flex items-center space-x-4">
+                        <button @click="showLanding" class="text-gray-600 hover:text-blue-600">
+                            <i class="fas fa-home"></i>
+                        </button>
+                        <button @click="showSettings = !showSettings" class="text-gray-600 hover:text-blue-600">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- View Selector -->
+                <div class="flex mt-4 overflow-x-auto pb-2">
+                    <button 
+                        @click="changeView('today')" 
+                        :class="{'bg-blue-100 text-blue-600': currentView === 'today'}" 
+                        class="px-4 py-2 rounded-lg mr-2 font-medium whitespace-nowrap"
+                    >
+                        Today
+                    </button>
+                    <button 
+                        @click="changeView('week')" 
+                        :class="{'bg-blue-100 text-blue-600': currentView === 'week'}" 
+                        class="px-4 py-2 rounded-lg mr-2 font-medium whitespace-nowrap"
+                    >
+                        This Week
+                    </button>
+                    <button 
+                        @click="changeView('month')" 
+                        :class="{'bg-blue-100 text-blue-600': currentView === 'month'}" 
+                        class="px-4 py-2 rounded-lg mr-2 font-medium whitespace-nowrap"
+                    >
+                        This Month
+                    </button>
+                    <button 
+                        @click="changeView('all')" 
+                        :class="{'bg-blue-100 text-blue-600': currentView === 'all'}" 
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap"
+                    >
+                        All Tasks
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-6">
+            <!-- Date Display -->
+            <div class="mb-6">
+                <h2 class="text-xl font-bold mb-2">
+                    {{ getViewTitle() }}
+                </h2>
+                <p class="text-gray-500">{{ getDateRange() }}</p>
+            </div>
+
+            <!-- Add Task Form -->
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+                <form @submit.prevent="addTask" class="flex items-center">
+                    <input 
+                        v-model="newTask.title" 
+                        type="text" 
+                        placeholder="Add a new task..." 
+                        class="flex-grow p-2 border-b-2 border-gray-200 focus:border-blue-500 outline-none"
+                        required
+                    >
+                    <select v-model="newTask.priority" class="ml-4 p-2 border rounded">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                    <button type="submit" class="ml-4 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </form>
+                <div v-if="showTaskOptions" class="mt-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                            <input v-model="newTask.dueDate" type="date" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select v-model="newTask.category" class="w-full p-2 border rounded">
+                                <option value="">None</option>
+                                <option v-for="cat in categories" :value="cat">{{ cat }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea v-model="newTask.notes" class="w-full p-2 border rounded" rows="2"></textarea>
+                    </div>
+                </div>
+                <button @click="showTaskOptions = !showTaskOptions" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                    {{ showTaskOptions ? 'Hide options' : 'More options' }}
+                </button>
+            </div>
+
+            <!-- Task Filters -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button 
+                    @click="setFilter('all')" 
+                    :class="{'bg-blue-600 text-white': currentFilter === 'all'}" 
+                    class="px-3 py-1 rounded-full text-sm border border-gray-300"
+                >
+                    All
+                </button>
+                <button 
+                    @click="setFilter('active')" 
+                    :class="{'bg-blue-600 text-white': currentFilter === 'active'}" 
+                    class="px-3 py-1 rounded-full text-sm border border-gray-300"
+                >
+                    Active
+                </button>
+                <button 
+                    @click="setFilter('completed')" 
+                    :class="{'bg-blue-600 text-white': currentFilter === 'completed'}" 
+                    class="px-3 py-1 rounded-full text-sm border border-gray-300"
+                >
+                    Completed
+                </button>
+                <select 
+                    v-model="categoryFilter" 
+                    @change="setFilter('category')" 
+                    class="px-3 py-1 rounded-full text-sm border border-gray-300"
+                >
+                    <option value="">All Categories</option>
+                    <option v-for="cat in categories" :value="cat">{{ cat }}</option>
+                </select>
+            </div>
+
+            <!-- Task List -->
+            <transition-group name="slide-fade" tag="div" class="space-y-3">
+                <div 
+                    v-for="task in filteredTasks" 
+                    :key="task.id" 
+                    :class="['bg-white rounded-lg shadow-sm p-4 flex items-start', 
+                            {'priority-high': task.priority === 'high'},
+                            {'priority-medium': task.priority === 'medium'},
+                            {'priority-low': task.priority === 'low'}]"
+                >
+                    <input 
+                        type="checkbox" 
+                        v-model="task.completed" 
+                        @change="updateTask(task)" 
+                        class="mt-1 mr-3"
+                    >
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start">
+                            <span :class="{'task-completed': task.completed}" class="font-medium">
+                                {{ task.title }}
+                            </span>
+                            <div class="flex space-x-2">
+                                <span v-if="task.dueDate" class="text-xs bg-gray-100 px-2 py-1 rounded">
+                                    {{ formatDate(task.dueDate) }}
+                                </span>
+                                <span v-if="task.category" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                    {{ task.category }}
+                                </span>
+                            </div>
+                        </div>
+                        <p v-if="task.notes" class="text-sm text-gray-600 mt-1">{{ task.notes }}</p>
+                        <div class="mt-2 flex space-x-2">
+                            <button 
+                                @click="toggleTaskDetails(task.id)" 
+                                class="text-xs text-blue-600 hover:text-blue-800"
+                            >
+                                {{ expandedTask === task.id ? 'Hide details' : 'Show details' }}
+                            </button>
+                            <button 
+                                @click="editTask(task)" 
+                                class="text-xs text-yellow-600 hover:text-yellow-800"
+                            >
+                                Edit
+                            </button>
+                            <button 
+                                @click="deleteTask(task.id)" 
+                                class="text-xs text-red-600 hover:text-red-800"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                        <transition name="fade">
+                            <div v-if="expandedTask === task.id" class="mt-3 p-3 bg-gray-50 rounded text-sm">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="font-medium">Priority:</p>
+                                        <p>{{ task.priority || 'Not set' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">Created:</p>
+                                        <p>{{ formatDate(task.createdAt) }}</p>
+                                    </div>
+                                    <div v-if="task.dueDate">
+                                        <p class="font-medium">Due Date:</p>
+                                        <p>{{ formatDate(task.dueDate) }}</p>
+                                    </div>
+                                    <div v-if="task.completedAt">
+                                        <p class="font-medium">Completed:</p>
+                                        <p>{{ formatDate(task.completedAt) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </transition>
+                    </div>
+                </div>
+            </transition-group>
+
+            <div v-if="filteredTasks.length === 0" class="text-center py-10 text-gray-500">
+                <i class="fas fa-check-circle text-4xl mb-4 text-gray-300"></i>
+                <p class="text-lg">No tasks found</p>
+                <p class="text-sm">Add a new task to get started</p>
+            </div>
+
+            <!-- Task Stats -->
+            <div class="mt-8 bg-white rounded-lg shadow-sm p-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-sm text-gray-600">
+                        {{ completedTasksCount }} of {{ tasks.length }} tasks completed
+                    </p>
+                    <button 
+                        @click="clearCompleted" 
+                        class="text-sm text-red-600 hover:text-red-800"
+                    >
+                        Clear completed
+                    </button>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                    <div 
+                        class="bg-blue-600 h-2.5 rounded-full" 
+                        :style="{width: `${completionPercentage}%`}"
+                    ></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Settings Modal -->
+        <transition name="fade">
+            <div v-if="showSettings" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">Settings</h3>
+                            <button @click="showSettings = false" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-medium mb-2">Theme</h4>
+                                <div class="flex space-x-2">
+                                    <button 
+                                        @click="setTheme('light')" 
+                                        :class="{'ring-2 ring-blue-500': theme === 'light'}" 
+                                        class="w-10 h-10 bg-white border rounded"
+                                    ></button>
+                                    <button 
+                                        @click="setTheme('dark')" 
+                                        :class="{'ring-2 ring-blue-500': theme === 'dark'}" 
+                                        class="w-10 h-10 bg-gray-800 border rounded"
+                                    ></button>
+                                    <button 
+                                        @click="setTheme('blue')" 
+                                        :class="{'ring-2 ring-blue-500': theme === 'blue'}" 
+                                        class="w-10 h-10 bg-blue-600 border rounded"
+                                    ></button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium mb-2">Categories</h4>
+                                <div class="flex items-center mb-2">
+                                    <input 
+                                        v-model="newCategory" 
+                                        type="text" 
+                                        placeholder="Add new category" 
+                                        class="flex-grow p-2 border rounded"
+                                    >
+                                    <button 
+                                        @click="addCategory" 
+                                        class="ml-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <div 
+                                        v-for="(cat, index) in categories" 
+                                        class="bg-gray-100 px-3 py-1 rounded-full flex items-center"
+                                    >
+                                        <span>{{ cat }}</span>
+                                        <button 
+                                            @click="removeCategory(index)" 
+                                            class="ml-1 text-gray-500 hover:text-red-500"
+                                        >
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium mb-2">Data Management</h4>
+                                <div class="space-y-2">
+                                    <button 
+                                        @click="exportTasks" 
+                                        class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                                    >
+                                        Export Tasks
+                                    </button>
+                                    <button 
+                                        @click="importTasks" 
+                                        class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                                    >
+                                        Import Tasks
+                                    </button>
+                                    <input 
+                                        type="file" 
+                                        ref="fileInput" 
+                                        @change="handleFileImport" 
+                                        class="hidden" 
+                                        accept=".json"
+                                    >
+                                    <button 
+                                        @click="resetTasks" 
+                                        class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+                                    >
+                                        Reset All Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Edit Task Modal -->
+        <transition name="fade">
+            <div v-if="editingTask" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">Edit Task</h3>
+                            <button @click="editingTask = null" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                <input 
+                                    v-model="editingTask.title" 
+                                    type="text" 
+                                    class="w-full p-2 border rounded"
+                                    required
+                                >
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                    <select v-model="editingTask.priority" class="w-full p-2 border rounded">
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                    <select v-model="editingTask.category" class="w-full p-2 border rounded">
+                                        <option value="">None</option>
+                                        <option v-for="cat in categories" :value="cat">{{ cat }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                <input v-model="editingTask.dueDate" type="date" class="w-full p-2 border rounded">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea v-model="editingTask.notes" class="w-full p-2 border rounded" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 pt-4">
+                                <button 
+                                    @click="editingTask = null" 
+                                    class="px-4 py-2 border rounded hover:bg-gray-100"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    @click="saveEditedTask" 
+                                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // App state
+                const showApp = ref(false);
+                const showSettings = ref(false);
+                const currentView = ref('today');
+                const currentFilter = ref('all');
+                const categoryFilter = ref('');
+                const showTaskOptions = ref(false);
+                const expandedTask = ref(null);
+                const editingTask = ref(null);
+                const theme = ref('light');
+                const newCategory = ref('');
+                
+                // Sample data
+                const categories = ref(['Work', 'Personal', 'Shopping', 'Health']);
+                
+                // New task template
+                const newTask = ref({
+                    id: null,
+                    title: '',
+                    completed: false,
+                    priority: 'medium',
+                    category: '',
+                    notes: '',
+                    dueDate: '',
+                    createdAt: new Date().toISOString(),
+                    completedAt: null
+                });
+                
+                // Tasks data
+                const tasks = ref([]);
+                
+                // Computed properties
+                const filteredTasks = computed(() => {
+                    let filtered = [...tasks.value];
+                    
+                    // Filter by view
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    
+                    const nextWeek = new Date(today);
+                    nextWeek.setDate(nextWeek.getDate() + 7);
+                    
+                    const nextMonth = new Date(today);
+                    nextMonth.setMonth(nextMonth.getMonth() + 1);
+                    
+                    if (currentView.value === 'today') {
+                        filtered = filtered.filter(task => {
+                            if (!task.dueDate) return false;
+                            const taskDate = new Date(task.dueDate);
+                            return taskDate >= today && taskDate < tomorrow;
+                        });
+                    } else if (currentView.value === 'week') {
+                        filtered = filtered.filter(task => {
+                            if (!task.dueDate) return false;
+                            const taskDate = new Date(task.dueDate);
+                            return taskDate >= today && taskDate < nextWeek;
+                        });
+                    } else if (currentView.value === 'month') {
+                        filtered = filtered.filter(task => {
+                            if (!task.dueDate) return false;
+                            const taskDate = new Date(task.dueDate);
+                            return taskDate >= today && taskDate < nextMonth;
+                        });
+                    }
+                    
+                    // Filter by status
+                    if (currentFilter.value === 'active') {
+                        filtered = filtered.filter(task => !task.completed);
+                    } else if (currentFilter.value === 'completed') {
+                        filtered = filtered.filter(task => task.completed);
+                    } else if (currentFilter.value === 'category' && categoryFilter.value) {
+                        filtered = filtered.filter(task => task.category === categoryFilter.value);
+                    }
+                    
+                    // Sort by priority and date
+                    const priorityOrder = { high: 1, medium: 2, low: 3 };
+                    return filtered.sort((a, b) => {
+                        // First by completion status (uncompleted first)
+                        if (a.completed !== b.completed) {
+                            return a.completed ? 1 : -1;
+                        }
+                        
+                        // Then by priority
+                        if (a.priority !== b.priority) {
+                            return priorityOrder[a.priority] - priorityOrder[b.priority];
+                        }
+                        
+                        // Then by due date (earlier first)
+                        if (a.dueDate && b.dueDate) {
+                            return new Date(a.dueDate) - new Date(b.dueDate);
+                        }
+                        
+                        // Then by creation date (newer first)
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    });
+                });
+                
+                const completedTasksCount = computed(() => {
+                    return tasks.value.filter(task => task.completed).length;
+                });
+                
+                const completionPercentage = computed(() => {
+                    return tasks.value.length > 0 
+                        ? Math.round((completedTasksCount.value / tasks.value.length) * 100) 
+                        : 0;
+                });
+                
+                // Methods
+                const loadTasks = () => {
+                    const savedTasks = localStorage.getItem('dima-todo-tasks');
+                    if (savedTasks) {
+                        tasks.value = JSON.parse(savedTasks);
+                    } else {
+                        // Load sample tasks if none exist
+                        tasks.value = [
+                            {
+                                id: 1,
+                                title: 'Buy groceries',
+                                completed: true,
+                                priority: 'medium',
+                                category: 'Shopping',
+                                notes: 'Milk, eggs, bread, fruits',
+                                dueDate: new Date().toISOString().split('T')[0],
+                                createdAt: new Date(Date.now() - 86400000).toISOString(),
+                                completedAt: new Date().toISOString()
+                            },
+                            {
+                                id: 2,
+                                title: 'Finish project',
+                                completed: false,
+                                priority: 'high',
+                                category: 'Work',
+                                notes: 'Deadline is approaching!',
+                                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                                createdAt: new Date(Date.now() - 172800000).toISOString(),
+                                completedAt: null
+                            },
+                            {
+                                id: 3,
+                                title: 'Call mom',
+                                completed: false,
+                                priority: 'low',
+                                category: 'Personal',
+                                notes: 'Ask about the family reunion',
+                                dueDate: new Date(Date.now() + 259200000).toISOString().split('T')[0],
+                                createdAt: new Date(Date.now() - 259200000).toISOString(),
+                                completedAt: null
+                            },
+                            {
+                                id: 4,
+                                title: 'Schedule meeting',
+                                completed: false,
+                                priority: 'medium',
+                                category: 'Work',
+                                notes: 'With the marketing team',
+                                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                                createdAt: new Date(Date.now() - 345600000).toISOString(),
+                                completedAt: null
+                            }
+                        ];
+                        saveTasks();
+                    }
+                    
+                    const savedCategories = localStorage.getItem('dima-todo-categories');
+                    if (savedCategories) {
+                        categories.value = JSON.parse(savedCategories);
+                    }
+                    
+                    const savedTheme = localStorage.getItem('dima-todo-theme');
+                    if (savedTheme) {
+                        theme.value = savedTheme;
+                        setTheme(savedTheme);
+                    }
+                };
+                
+                const saveTasks = () => {
+                    localStorage.setItem('dima-todo-tasks', JSON.stringify(tasks.value));
+                    localStorage.setItem('dima-todo-categories', JSON.stringify(categories.value));
+                };
+                
+                const addTask = () => {
+                    const task = {
+                        ...newTask.value,
+                        id: Date.now(),
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    tasks.value.unshift(task);
+                    saveTasks();
+                    
+                    // Reset new task form
+                    newTask.value = {
+                        id: null,
+                        title: '',
+                        completed: false,
+                        priority: 'medium',
+                        category: '',
+                        notes: '',
+                        dueDate: '',
+                        createdAt: new Date().toISOString(),
+                        completedAt: null
+                    };
+                    showTaskOptions.value = false;
+                };
+                
+                const updateTask = (task) => {
+                    if (task.completed) {
+                        task.completedAt = new Date().toISOString();
+                    } else {
+                        task.completedAt = null;
+                    }
+                    saveTasks();
+                };
+                
+                const deleteTask = (id) => {
+                    tasks.value = tasks.value.filter(task => task.id !== id);
+                    saveTasks();
+                };
+                
+                const clearCompleted = () => {
+                    tasks.value = tasks.value.filter(task => !task.completed);
+                    saveTasks();
+                };
+                
+                const editTask = (task) => {
+                    editingTask.value = { ...task };
+                };
+                
+                const saveEditedTask = () => {
+                    const index = tasks.value.findIndex(t => t.id === editingTask.value.id);
+                    if (index !== -1) {
+                        tasks.value[index] = { ...editingTask.value };
+                        saveTasks();
+                    }
+                    editingTask.value = null;
+                };
+                
+                const toggleTaskDetails = (id) => {
+                    expandedTask.value = expandedTask.value === id ? null : id;
+                };
+                
+                const changeView = (view) => {
+                    currentView.value = view;
+                    // Reset filter when changing views
+                    currentFilter.value = 'all';
+                    categoryFilter.value = '';
+                };
+                
+                const setFilter = (filter) => {
+                    currentFilter.value = filter;
+                };
+                
+                const getViewTitle = () => {
+                    const now = new Date();
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    
+                    if (currentView.value === 'today') {
+                        return 'Today';
+                    } else if (currentView.value === 'week') {
+                        return 'This Week';
+                    } else if (currentView.value === 'month') {
+                        return 'This Month';
+                    } else {
+                        return 'All Tasks';
+                    }
+                };
+                
+                const getDateRange = () => {
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    
+                    const nextWeek = new Date(today);
+                    nextWeek.setDate(nextWeek.getDate() + 7);
+                    
+                    const nextMonth = new Date(today);
+                    nextMonth.setMonth(nextMonth.getMonth() + 1);
+                    
+                    if (currentView.value === 'today') {
+                        return today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+                    } else if (currentView.value === 'week') {
+                        return `${today.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${nextWeek.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+                    } else if (currentView.value === 'month') {
+                        return now.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+                    } else {
+                        return 'All your tasks in one place';
+                    }
+                };
+                
+                const formatDate = (dateString) => {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString(undefined, { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                };
+                
+                const addCategory = () => {
+                    if (newCategory.value.trim() && !categories.value.includes(newCategory.value.trim())) {
+                        categories.value.push(newCategory.value.trim());
+                        newCategory.value = '';
+                        saveTasks();
+                    }
+                };
+                
+                const removeCategory = (index) => {
+                    categories.value.splice(index, 1);
+                    saveTasks();
+                };
+                
+                const setTheme = (selectedTheme) => {
+                    theme.value = selectedTheme;
+                    localStorage.setItem('dima-todo-theme', selectedTheme);
+                    
+                    // Apply theme classes to body
+                    document.body.className = '';
+                    if (selectedTheme === 'dark') {
+                        document.body.classList.add('bg-gray-900', 'text-white');
+                    } else if (selectedTheme === 'blue') {
+                        document.body.classList.add('bg-blue-50');
+                    } else {
+                        document.body.classList.add('bg-gray-50');
+                    }
+                };
+                
+                const exportTasks = () => {
+                    const data = {
+                        tasks: tasks.value,
+                        categories: categories.value,
+                        version: '1.0',
+                        exportedAt: new Date().toISOString()
+                    };
+                    
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `dima-todo-export-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                };
+                
+                const importTasks = () => {
+                    const fileInput = document.querySelector('input[type="file"]');
+                    fileInput.click();
+                };
+                
+                const handleFileImport = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (data.tasks && Array.isArray(data.tasks)) {
+                                tasks.value = data.tasks;
+                                if (data.categories && Array.isArray(data.categories)) {
+                                    categories.value = data.categories;
+                                }
+                                saveTasks();
+                                alert('Tasks imported successfully!');
+                            } else {
+                                alert('Invalid file format');
+                            }
+                        } catch (error) {
+                            alert('Error parsing file: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                    event.target.value = ''; // Reset file input
+                };
+                
+                const resetTasks = () => {
+                    if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+                        localStorage.removeItem('dima-todo-tasks');
+                        localStorage.removeItem('dima-todo-categories');
+                        loadTasks();
+                    }
+                };
+                
+                const showLanding = () => {
+                    showApp.value = false;
+                };
+                
+                // Initialize
+                onMounted(() => {
+                    loadTasks();
+                });
+                
+                // Expose to template
+                return {
+                    showApp,
+                    showSettings,
+                    currentView,
+                    currentFilter,
+                    categoryFilter,
+                    showTaskOptions,
+                    expandedTask,
+                    editingTask,
+                    theme,
+                    newCategory,
+                    categories,
+                    newTask,
+                    tasks,
+                    filteredTasks,
+                    completedTasksCount,
+                    completionPercentage,
+                    loadTasks,
+                    saveTasks,
+                    addTask,
+                    updateTask,
+                    deleteTask,
+                    clearCompleted,
+                    editTask,
+                    saveEditedTask,
+                    toggleTaskDetails,
+                    changeView,
+                    setFilter,
+                    getViewTitle,
+                    getDateRange,
+                    formatDate,
+                    addCategory,
+                    removeCategory,
+                    setTheme,
+                    exportTasks,
+                    importTasks,
+                    handleFileImport,
+                    resetTasks,
+                    showLanding
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

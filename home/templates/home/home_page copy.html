@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+
+{% block body_class %}template-homepage{% endblock %}
+    {% block extra_css %}
+         <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}"> -->
+         <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    {% endblock %}
+
+{% block content %}
+  
+  {% for block in page.body %}
+    {% if block.block_type == 'hero' %}
+     <!-- Hero Section -->
+   
+      <header class="hero-section position-relative text-white text-center d-flex align-items-center justify-content-center"
+        hero" style='background-image: url("{% image block.value.background_image original %}"); background-size: cover'>
+         <!-- Overlay -->
+        <div class="hero-overlay position-absolute top-0 start-0 w-100 h-100"></div>
+
+        <div class="container position-relative" style="z-index: 1;">
+          <h1 class="display-4 fw-bold mb-4 hero-title">{{ block.value.title }}</h1>
+          <p class="lead mb-5 hero-subtitle">{{ block.value.subtitle }}</p>
+            <a href="{{ block.value.button_url }}" class="btn btn-primary btn-lg px-4 py-2">{{ block.value.button_text }}</a>
+            <a href="#contacts" class="btn btn-outline-light btn-lg px-4 py-2" aria-label="Contactez-nous">Contactez-nous</a>
+        </div>
+      </header>
+
+    {% elif block.block_type == 'services' %}
+      <section class="services py-5">
+        <div class="container">
+          <h2 class="mb-4">{{ block.value.title }}</h2>
+          <div class="row">
+            {% for item in block.value.service_items %}
+              <div class="col-md-4 mb-4">
+                <i class="bi {{ item.icon }} fs-1 text-primary"></i>
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.description }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+    {% elif block.block_type == 'projects' %}
+      <section class="projects py-5">
+        <div class="container">
+          <h2 class="mb-4">{{ block.value.title }}</h2>
+          <div class="row g-4">
+            {% for item in block.value.project_items %}
+              <div class="col-md-3">
+                {% image item.image fill-400x300 %}
+                <h4>{{ item.title }}</h4>
+                <p class="text-muted">{{ item.category }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+    {% elif block.block_type == 'expertise' %}
+      <section class="expertise py-5 bg-light">
+        <div class="container">
+          <h2 class="mb-4">{{ block.value.title }}</h2>
+          <div class="row">
+            {% for item in block.value.expertise_items %}
+              <div class="col-md-4 mb-4">
+                <div class="display-4 text-primary">{{ item.number }}</div>
+                <h4>{{ item.title }}</h4>
+                <p>{{ item.description }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+    {% elif block.block_type == 'testimonials' %}
+      <section class="testimonials py-5">
+        <div class="container">
+          <h2 class="mb-4">{{ block.value.title }}</h2>
+          <div class="row">
+            {% for item in block.value.testimonials %}
+              <div class="col-md-6 mb-4">
+                <blockquote class="blockquote">
+                  "{{ item.quote }}"
+                  <footer class="blockquote-footer mt-2">{{ item.author }} - {{ item.company }}</footer>
+                </blockquote>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+    {% elif block.block_type == 'contact' %}
+      <section class="contact py-5 bg-light">
+        <div class="container">
+          <h2 class="mb-4">{{ block.value.title }}</h2>
+          <p><strong>Adresse :</strong> {{ block.value.address }}</p>
+          <p><strong>Téléphone :</strong> {{ block.value.phone }}</p>
+          <p><strong>Email :</strong> <a href="mailto:{{ block.value.email }}">{{ block.value.email }}</a></p>
+        </div>
+      </section>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

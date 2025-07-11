@@ -1,0 +1,12 @@
+<header class="hero-section position-relative text-white text-center d-flex align-items-center justify-content-center"
+    hero" style='background-image: url("{% image block.value.background_image original %}"); background-size: cover'>
+        <!-- Overlay -->
+    <div class="hero-overlay position-absolute top-0 start-0 w-100 h-100"></div>
+
+    <div class="container position-relative" style="z-index: 1;">
+        <h1 class="display-4 fw-bold mb-4 hero-title">{{ block.value.title }}</h1>
+        <p class="lead mb-5 hero-subtitle">{{ block.value.subtitle }}</p>
+        <a href="{{ block.value.button_url }}" class="btn btn-primary btn-lg px-4 py-2">{{ block.value.button_text }}</a>
+        <a href="#contacts" class="btn btn-outline-light btn-lg px-4 py-2" aria-label="Contactez-nous">Contactez-nous</a>
+    </div>
+</header>
