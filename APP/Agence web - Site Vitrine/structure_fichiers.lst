@@ -1,0 +1,22 @@
+agence-web/
+├── index.html            # Page d'accueil
+├── portfolio.html        # Page Portfolio
+├── contact.html          # Page Contact
+├── css/
+│   └── style.css         # Styles personnalisés
+├── js/
+│   └── script.js         # JavaScript pour interactions (filtres, modales)
+└── assets/
+    ├── images/
+    │   ├── hero-background.mp4  # Vidéo pour le hero (placeholder)
+    │   ├── logo.png             # Logo de l'agence
+    │   ├── client-logo1.png     # Logos clients...
+    │   ├── client-logo2.png
+    │   ├── portfolio-thumb1.jpg # Miniatures portfolio...
+    │   ├── portfolio-thumb2.jpg
+    │   └── blog-thumb1.jpg      # Miniatures blog...
+    └── icons/
+        └── ... (si vous téléchargez Font Awesome localement)
+        
+        
+ 

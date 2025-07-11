@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contactez Agence Web Pro pour discuter de votre projet web. Formulaire de contact et coordonnées.">
+    <title>Contact - Agence Web Pro</title>
+     <!-- Liens CSS (Bootstrap, Font Awesome, Google Fonts, Custom) comme dans index.html -->
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+     <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navbar (copier/coller la navbar de index.html) -->
+     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+         <div class="container">
+             <a class="navbar-brand" href="index.html">
+                 <img src="assets/images/logo.png" alt="Logo Agence Web Pro" height="40"> Agence Web Pro
+             </a>
+             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                 <span class="navbar-toggler-icon"></span>
+             </button>
+             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                 <ul class="navbar-nav">
+                     <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+                     <li class="nav-item"><a class="nav-link" href="index.html#services">Solutions</a></li>
+                     <li class="nav-item"><a class="nav-link" href="portfolio.html">Portfolio</a></li>
+                     <li class="nav-item"><a class="nav-link" href="index.html#blog">Blog</a></li>
+                     <li class="nav-item"><a class="nav-link active" aria-current="page" href="contact.html">Contact</a></li>
+                 </ul>
+             </div>
+         </div>
+     </nav>
+
+    <main class="contact-page" style="padding-top: 80px;"> <!-- Ajustez le padding-top -->
+        <section class="py-5">
+            <div class="container">
+                <h1 class="text-center mb-5 section-title">Contactez-Nous</h1>
+                <div class="row g-5">
+                    <!-- Colonne Formulaire -->
+                    <div class="col-lg-7">
+                        <h4 class="mb-4">Envoyez-nous un message</h4>
+                        <form action="votre_script_de_traitement.php" method="POST"> <!-- Action pointe vers votre script backend -->
+                            <div class="mb-3">
+                                <label for="contactName" class="form-label">Nom Complet <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="contactName" name="name" required aria-required="true">
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactCompany" class="form-label">Entreprise</label>
+                                <input type="text" class="form-control" id="contactCompany" name="company">
+                            </div>
+                             <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="contactEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="contactEmail" name="email" required aria-required="true">
+                                </div>
+                                 <div class="col-md-6 mb-3">
+                                    <label for="contactPhone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="contactPhone" name="phone" required aria-required="true">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactNeed" class="form-label">Votre Besoin <span class="text-danger">*</span></label>
+                                <select class="form-select" id="contactNeed" name="need" required aria-required="true">
+                                    <option selected disabled value="">-- Sélectionnez une solution --</option>
+                                    <option value="ecommerce">Solution Ecommerce</option>
+                                    <option value="crm">Gestion CRM</option>
+                                    <option value="erp">Système ERP</option>
+                                    <option value="gestion-stock">Gestion de Stock</option>
+                                    <option value="cms">CMS Personnalisé</option>
+                                    <option value="immobilier">Solution Immobilière</option>
+                                    <option value="autre">Autre demande</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactMessage" class="form-label">Votre Message <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="contactMessage" name="message" rows="5" required aria-required="true"></textarea>
+                            </div>
+                             <!-- Optionnel : Captcha / Honeypot -->
+                            <button type="submit" class="btn btn-primary">Envoyer le message</button>
+                        </form>
+                    </div>
+
+                    <!-- Colonne Coordonnées & Carte -->
+                    <div class="col-lg-5">
+                        <h4 class="mb-4">Nos Coordonnées</h4>
+                        <div class="mb-4 p-3 bg-light rounded">
+                             <p><i class="fas fa-map-marker-alt me-2 text-primary"></i> <strong>Adresse :</strong><br>123 Rue de l'Agence<br>75000 Paris, France</p>
+                             <p><i class="fas fa-phone me-2 text-primary"></i> <strong>Téléphone :</strong><br><a href="tel:+33123456789" class="text-decoration-none text-dark">+33 1 23 45 67 89</a></p>
+                             <p><i class="fas fa-envelope me-2 text-primary"></i> <strong>Email :</strong><br><a href="mailto:contact@agencewebpro.com" class="text-decoration-none text-dark">contact@agencewebpro.com</a></p>
+                             <p><i class="fas fa-clock me-2 text-primary"></i> <strong>Horaires :</strong><br>Lundi - Vendredi : 9h00 - 18h00</p>
+                        </div>
+
+                        <h4 class="mb-3 mt-5">Nous Trouver</h4>
+                        <!-- Google Maps Embed -->
+                        <div class="map-responsive ratio ratio-16x9">
+                             <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.991625693759!2d2.292292615674279!3d48.85837007928746!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66e2964e34e2d%3A0x8ddca9ee380ef7e0!2sTour%20Eiffel!5e0!3m2!1sfr!2sfr!4v1678886865389!5m2!1sfr!2sfr"
+                                width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade" title="Carte Google Maps de l'agence">
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+     <!-- Footer (copier/coller le footer de index.html) -->
+     <footer class="bg-dark text-light py-5">
+         <!-- ... Contenu du footer ... -->
+         <div class="container">
+             <div class="text-center text-muted small">
+                 © <span id="currentYearContact"></span> Agence Web Pro. Tous droits réservés.
+             </div>
+         </div>
+     </footer>
+
+    <!-- Scripts JS (Bootstrap Bundle, Custom) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
