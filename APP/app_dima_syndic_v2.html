@@ -1,0 +1,691 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIMA Syndic - Gestion de copropriété</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div id="app">
+        <!-- Top Navigation -->
+        <nav class="bg-blue-800 text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <i class="fas fa-building text-2xl mr-2"></i>
+                            <span class="text-xl font-bold">DIMA Syndic</span>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="ml-10 flex items-baseline space-x-4">
+                                <a href="#" class="px-3 py-2 rounded-md text-sm font-medium bg-blue-900">Tableau de bord</a>
+                                <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Copropriétés</a>
+                                <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Finances</a>
+                                <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Documents</a>
+                                <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Paramètres</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-4 flex items-center md:ml-6">
+                            <button class="p-1 rounded-full text-blue-200 hover:text-white focus:outline-none">
+                                <i class="fas fa-bell text-xl"></i>
+                            </button>
+                            <div class="ml-3 relative">
+                                <div>
+                                    <button @click="toggleUserMenu" class="max-w-xs flex items-center text-sm rounded-full focus:outline-none">
+                                        <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
+                                    </button>
+                                </div>
+                                <transition name="fade">
+                                    <div v-if="isUserMenuOpen" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Votre profil</a>
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Paramètres</a>
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Déconnexion</a>
+                                    </div>
+                                </transition>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="-mr-2 flex md:hidden">
+                        <button @click="toggleMobileMenu" class="inline-flex items-center justify-center p-2 rounded-md text-blue-200 hover:text-white hover:bg-blue-700 focus:outline-none">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile menu -->
+            <transition name="fade">
+                <div v-if="isMobileMenuOpen" class="md:hidden">
+                    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                        <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-blue-900">Tableau de bord</a>
+                        <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-blue-700">Copropriétés</a>
+                        <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-blue-700">Finances</a>
+                        <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-blue-700">Documents</a>
+                        <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-blue-700">Paramètres</a>
+                    </div>
+                    <div class="pt-4 pb-3 border-t border-blue-700">
+                        <div class="flex items-center px-5">
+                            <div class="flex-shrink-0">
+                                <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-base font-medium text-white">Tom Cook</div>
+                                <div class="text-sm font-medium text-blue-300">tom@example.com</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 px-2 space-y-1">
+                            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-blue-700">Votre profil</a>
+                            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-blue-700">Paramètres</a>
+                            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-blue-700">Déconnexion</a>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+        </nav>
+
+        <div class="flex">
+            <!-- Sidebar -->
+            <div class="hidden md:flex md:flex-shrink-0">
+                <div class="flex flex-col w-64 bg-blue-900 text-white">
+                    <div class="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                        <div class="flex items-center flex-shrink-0 px-4">
+                            <i class="fas fa-building text-2xl mr-2"></i>
+                            <span class="text-xl font-bold">DIMA Syndic</span>
+                        </div>
+                        <nav class="mt-5 flex-1 px-2 space-y-1">
+                            <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-white bg-blue-800">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                Tableau de bord
+                            </a>
+                            <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-blue-100 hover:text-white">
+                                <i class="fas fa-home mr-3"></i>
+                                Copropriétés
+                            </a>
+                            <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-blue-100 hover:text-white">
+                                <i class="fas fa-users mr-3"></i>
+                                Copropriétaires
+                            </a>
+                            <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-blue-100 hover:text-white">
+                                <i class="fas fa-euro-sign mr-3"></i>
+                                Finances
+                            </a>
+                            <div>
+                                <button @click="toggleFinancesMenu" class="sidebar-link group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-blue-100 hover:text-white">
+                                    <i class="fas fa-caret-right mr-2" :class="{'transform rotate-90': isFinancesMenuOpen}"></i>
+                                    <i class="fas fa-file-invoice-dollar mr-1"></i>
+                                    Charges & Paiements
+                                </button>
+                                <transition name="fade">
+                                    <div v-if="isFinancesMenuOpen" class="ml-8 mt-1 space-y-1">
+                                        <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-xs font-medium rounded-md text-blue-100 hover:text-white">
+                                            <i class="fas fa-hand-holding-usd mr-2"></i>
+                                            Appels de fonds
+                                        </a>
+                                        <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-xs font-medium rounded-md text-blue-100 hover:text-white">
+                                            <i class="fas fa-file-invoice mr-2"></i>
+                                            Factures fournisseurs
+                                        </a>
+                                        <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-xs font-medium rounded-md text-blue-100 hover:text-white">
+                                            <i class="fas fa-exchange-alt mr-2"></i>
+                                            Rapprochement bancaire
+                                        </a>
+                                    </div>
+                                </transition>
+                            </div>
+                            <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-blue-100 hover:text-white">
+                                <i class="fas fa-file-alt mr-3"></i>
+                                Documents
+                            </a>
+                            <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-blue-100 hover:text-white">
+                                <i class="fas fa-calendar-alt mr-3"></i>
+                                AG & Réunions
+                            </a>
+                            <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-blue-100 hover:text-white">
+                                <i class="fas fa-tools mr-3"></i>
+                                Travaux
+                            </a>
+                            <a href="#" class="sidebar-link group flex items-center px-2 py-2 text-sm font-medium rounded-md text-blue-100 hover:text-white">
+                                <i class="fas fa-cog mr-3"></i>
+                                Paramètres
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="flex-shrink-0 flex bg-blue-800 p-4">
+                        <div class="flex items-center">
+                            <div>
+                                <img class="inline-block h-9 w-9 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="">
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-white">Tom Cook</p>
+                                <a href="#" class="text-xs font-medium text-blue-300 hover:text-blue-100">Voir profil</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <!-- Header -->
+                    <div class="md:flex md:items-center md:justify-between mb-8">
+                        <div class="flex-1 min-w-0">
+                            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                                Tableau de bord
+                            </h2>
+                            <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
+                                <div class="mt-2 flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-building mr-1"></i>
+                                    Résidence Les Jardins du Lac
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    12 Rue de la Paix, 75002 Paris
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    Dernière mise à jour: 15/06/2023
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex md:mt-0 md:ml-4">
+                            <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                                <i class="fas fa-download mr-2"></i>
+                                Exporter
+                            </button>
+                            <button type="button" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
+                                <i class="fas fa-plus mr-2"></i>
+                                Nouvelle opération
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                        <div class="dashboard-card bg-white overflow-hidden shadow rounded-lg transition duration-300 ease-in-out">
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                                        <i class="fas fa-euro-sign text-white text-xl"></i>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                            Solde courant
+                                        </dt>
+                                        <dd class="flex items-baseline">
+                                            <div class="text-2xl font-semibold text-gray-900">
+                                                24,563.50 €
+                                            </div>
+                                        </dd>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-white overflow-hidden shadow rounded-lg transition duration-300 ease-in-out">
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                        <i class="fas fa-hand-holding-usd text-white text-xl"></i>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                            Encaissements ce mois
+                                        </dt>
+                                        <dd class="flex items-baseline">
+                                            <div class="text-2xl font-semibold text-gray-900">
+                                                8,742.00 €
+                                            </div>
+                                            <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                                                <i class="fas fa-arrow-up mr-1"></i>
+                                                12%
+                                            </div>
+                                        </dd>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-white overflow-hidden shadow rounded-lg transition duration-300 ease-in-out">
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
+                                        <i class="fas fa-file-invoice-dollar text-white text-xl"></i>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                            Dépenses ce mois
+                                        </dt>
+                                        <dd class="flex items-baseline">
+                                            <div class="text-2xl font-semibold text-gray-900">
+                                                5,328.75 €
+                                            </div>
+                                            <div class="ml-2 flex items-baseline text-sm font-semibold text-red-600">
+                                                <i class="fas fa-arrow-down mr-1"></i>
+                                                8%
+                                            </div>
+                                        </dd>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-white overflow-hidden shadow rounded-lg transition duration-300 ease-in-out">
+                            <div class="px-4 py-5 sm:p-6">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                                        <i class="fas fa-percentage text-white text-xl"></i>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                            Taux de recouvrement
+                                        </dt>
+                                        <dd class="flex items-baseline">
+                                            <div class="text-2xl font-semibold text-gray-900">
+                                                92.5%
+                                            </div>
+                                            <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                                                <i class="fas fa-arrow-up mr-1"></i>
+                                                3.2%
+                                            </div>
+                                        </dd>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts and Recent Activity -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        <!-- Cash Flow Chart -->
+                        <div class="bg-white shadow rounded-lg col-span-2 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-medium text-gray-900">Flux de trésorerie</h3>
+                                <div class="relative">
+                                    <select class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none">
+                                        <option>12 derniers mois</option>
+                                        <option>6 derniers mois</option>
+                                        <option>Année en cours</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="h-64">
+                                <!-- Chart placeholder - would be replaced with actual chart library -->
+                                <div class="flex items-center justify-center h-full bg-gray-50 rounded border border-gray-200">
+                                    <i class="fas fa-chart-line text-4xl text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="bg-white shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Activité récente</h3>
+                            <div class="space-y-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <i class="fas fa-euro-sign text-blue-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">Nouveau paiement reçu</p>
+                                        <p class="text-sm text-gray-500">M. Dupont a payé 850.00 € pour l'appel de fonds de juin</p>
+                                        <p class="text-xs text-gray-400 mt-1">Il y a 2 heures</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                            <i class="fas fa-file-invoice text-green-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">Facture enregistrée</p>
+                                        <p class="text-sm text-gray-500">Facture #FAC-2023-056 de 1,250.00 € pour Espaces Verts SA</p>
+                                        <p class="text-xs text-gray-400 mt-1">Aujourd'hui, 09:45</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                            <i class="fas fa-bell text-purple-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">Rappel envoyé</p>
+                                        <p class="text-sm text-gray-500">Rappel de paiement envoyé à 5 copropriétaires en retard</p>
+                                        <p class="text-xs text-gray-400 mt-1">Hier, 16:30</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                                            <i class="fas fa-exchange-alt text-yellow-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">Rapprochement bancaire</p>
+                                        <p class="text-sm text-gray-500">Rapprochement effectué pour le compte courant</p>
+                                        <p class="text-xs text-gray-400 mt-1">Hier, 11:20</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                                    Voir toute l'activité
+                                    <i class="fas fa-chevron-right ml-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Payments and Upcoming Tasks -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Recent Payments -->
+                        <div class="bg-white shadow rounded-lg overflow-hidden">
+                            <div class="px-6 py-5 border-b border-gray-200">
+                                <h3 class="text-lg font-medium text-gray-900">Derniers paiements</h3>
+                            </div>
+                            <div class="divide-y divide-gray-200">
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-euro-sign text-green-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Mme. Leroy</div>
+                                                <div class="text-sm text-gray-500">Appel de fonds juin 2023</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium text-gray-900">850.00 €</div>
+                                            <div class="text-xs text-gray-500">15/06/2023</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-euro-sign text-green-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">M. Bernard</div>
+                                                <div class="text-sm text-gray-500">Appel de fonds juin 2023</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium text-gray-900">1,020.00 €</div>
+                                            <div class="text-xs text-gray-500">14/06/2023</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-euro-sign text-green-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">SCI Les Roses</div>
+                                                <div class="text-sm text-gray-500">Régularisation charges 2022</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium text-gray-900">1,750.50 €</div>
+                                            <div class="text-xs text-gray-500">12/06/2023</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-euro-sign text-green-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">M. et Mme. Martin</div>
+                                                <div class="text-sm text-gray-500">Appel de fonds juin 2023</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium text-gray-900">920.00 €</div>
+                                            <div class="text-xs text-gray-500">10/06/2023</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-6 py-4">
+                                <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                                    Voir tous les paiements
+                                    <i class="fas fa-chevron-right ml-1"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Tasks -->
+                        <div class="bg-white shadow rounded-lg overflow-hidden">
+                            <div class="px-6 py-5 border-b border-gray-200">
+                                <h3 class="text-lg font-medium text-gray-900">Tâches à venir</h3>
+                            </div>
+                            <div class="divide-y divide-gray-200">
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <i class="fas fa-file-invoice-dollar text-blue-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Émettre appel de fonds juillet</div>
+                                                <div class="text-sm text-gray-500">Échéance: 25/06/2023</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                Haute priorité
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                <i class="fas fa-users text-yellow-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Préparer convocation AG</div>
+                                                <div class="text-sm text-gray-500">Échéance: 30/06/2023</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                Priorité moyenne
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <i class="fas fa-file-alt text-purple-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Finaliser compte rendu réunion</div>
+                                                <div class="text-sm text-gray-500">Échéance: 18/06/2023</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                Priorité moyenne
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <i class="fas fa-tools text-green-600"></i>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">Suivi travaux ascenseur</div>
+                                                <div class="text-sm text-gray-500">Échéance: 20/06/2023</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                Priorité basse
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-6 py-4">
+                                <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                                    Voir toutes les tâches
+                                    <i class="fas fa-chevron-right ml-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for new operation -->
+        <div v-if="isModalOpen" class="fixed z-10 inset-0 overflow-y-auto">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <i class="fas fa-plus text-blue-600"></i>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    Nouvelle opération
+                                </h3>
+                                <div class="mt-2">
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <div>
+                                            <label for="operation-type" class="block text-sm font-medium text-gray-700">Type d'opération</label>
+                                            <select id="operation-type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                                <option>Appel de fonds</option>
+                                                <option>Facture fournisseur</option>
+                                                <option>Paiement copropriétaire</option>
+                                                <option>Régularisation charges</option>
+                                                <option>Autre opération</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="amount" class="block text-sm font-medium text-gray-700">Montant</label>
+                                            <input type="text" id="amount" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                        <div>
+                                            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                                            <textarea id="description" rows="3" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                            Enregistrer
+                        </button>
+                        <button @click="isModalOpen = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+        
+        createApp({
+            setup() {
+                const isUserMenuOpen = ref(false);
+                const isMobileMenuOpen = ref(false);
+                const isFinancesMenuOpen = ref(false);
+                const isModalOpen = ref(false);
+                
+                const toggleUserMenu = () => {
+                    isUserMenuOpen.value = !isUserMenuOpen.value;
+                };
+                
+                const toggleMobileMenu = () => {
+                    isMobileMenuOpen.value = !isMobileMenuOpen.value;
+                };
+                
+                const toggleFinancesMenu = () => {
+                    isFinancesMenuOpen.value = !isFinancesMenuOpen.value;
+                };
+                
+                const openModal = () => {
+                    isModalOpen.value = true;
+                };
+                
+                return {
+                    isUserMenuOpen,
+                    isMobileMenuOpen,
+                    isFinancesMenuOpen,
+                    isModalOpen,
+                    toggleUserMenu,
+                    toggleMobileMenu,
+                    toggleFinancesMenu,
+                    openModal
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

@@ -69,3 +69,35 @@ class ServicesBlock(blocks.StructBlock):
         icon = "list-ul"
         label = "Section Services"
         template = "home/blocks/services_block.html"
+
+
+class ClientItemBlock(blocks.StructBlock):
+    logo = ImageChooserBlock(required=True, help_text="Logo du client")
+    name = blocks.CharBlock(required=False)
+    alt_text = blocks.CharBlock(required=False, help_text="Texte alternatif pour l’accessibilité")
+
+    class Meta:
+        icon = "image"
+        label = "Client"
+
+
+
+class ClientLogoBlock(blocks.StructBlock):
+    logo = ImageChooserBlock(required=True, help_text="Logo du client")
+    alt_text = blocks.CharBlock(required=False, help_text="Texte alternatif")
+
+class TestimonialBlock(blocks.StructBlock):
+    quote = blocks.TextBlock(required=True, help_text="Citation ou témoignage")
+    author = blocks.CharBlock(required=True, max_length=100, help_text="Nom du client")
+    role = blocks.CharBlock(required=False, max_length=100, help_text="Poste ou entreprise")
+
+class ClientsBlock(blocks.StructBlock):
+    heading = blocks.CharBlock(required=True, max_length=100)
+    clients = blocks.ListBlock(ClientLogoBlock())
+    testimonial = TestimonialBlock(required=False)
+    enable_carousel = blocks.BooleanBlock(required=False, default=True, help_text="Activer le carousel de logos")
+
+    class Meta:
+        template = "home/blocks/clients_block.html"
+        icon = "group"
+        label = "Clients + Témoignage"

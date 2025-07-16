@@ -1,0 +1,282 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dima Infos - Actualités en temps réel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .news-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .category-btn.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .skeleton {
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-newspaper text-blue-500 text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-800">Dima Infos</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="p-2 rounded-full hover:bg-gray-100">
+                    <i class="fas fa-search text-gray-600"></i>
+                </button>
+                <button class="p-2 rounded-full hover:bg-gray-100">
+                    <i class="fas fa-bell text-gray-600"></i>
+                </button>
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breaking News Banner -->
+    <div class="bg-red-600 text-white py-2 px-4 flex items-center">
+        <span class="font-bold mr-3">BREAKING:</span>
+        <marquee behavior="scroll" direction="left" class="flex-1">
+            Chargement des dernières actualités en cours...
+        </marquee>
+    </div>
+
+    <!-- Category Navigation -->
+    <div class="bg-white shadow-sm overflow-x-auto">
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-6 py-3" id="categoryNav">
+                <!-- Categories will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Featured News (Top Story) -->
+        <section class="mb-10">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">À la une</h2>
+            <div class="bg-white rounded-xl shadow-md overflow-hidden" id="featuredNews">
+                <div class="skeleton h-80 w-full bg-gray-200 rounded-xl"></div>
+            </div>
+        </section>
+
+        <!-- News Grid -->
+        <section>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800" id="currentCategoryTitle">Dernières actualités</h2>
+                <button class="text-blue-500 hover:text-blue-700 flex items-center">
+                    <span>Voir plus</span>
+                    <i class="fas fa-chevron-right ml-1"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="newsGrid">
+                <!-- News cards will be dynamically added here -->
+                <!-- Skeleton loading -->
+                <div class="skeleton bg-white rounded-xl shadow-md overflow-hidden news-card h-64"></div>
+                <div class="skeleton bg-white rounded-xl shadow-md overflow-hidden news-card h-64"></div>
+                <div class="skeleton bg-white rounded-xl shadow-md overflow-hidden news-card h-64"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 md:hidden">
+        <div class="flex justify-around">
+            <a href="#" class="flex flex-col items-center py-3 px-4 text-blue-500">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs mt-1">Accueil</span>
+            </a>
+            <a href="#" class="flex flex-col items-center py-3 px-4 text-gray-500">
+                <i class="fas fa-compass text-xl"></i>
+                <span class="text-xs mt-1">Découvrir</span>
+            </a>
+            <a href="#" class="flex flex-col items-center py-3 px-4 text-gray-500">
+                <i class="fas fa-bookmark text-xl"></i>
+                <span class="text-xs mt-1">Favoris</span>
+            </a>
+            <a href="#" class="flex flex-col items-center py-3 px-4 text-gray-500">
+                <i class="fas fa-cog text-xl"></i>
+                <span class="text-xs mt-1">Paramètres</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        // Configuration
+        const config = {
+            apiKey: '2e8f0a3d5d4e4f5b8a0a3d5d4e4f5b8a', // Remplacez par votre clé API NewsAPI
+            categories: [
+                { id: 'general', name: 'Général', icon: 'fas fa-globe' },
+                { id: 'business', name: 'Économie', icon: 'fas fa-chart-line' },
+                { id: 'technology', name: 'Technologie', icon: 'fas fa-microchip' },
+                { id: 'science', name: 'Science', icon: 'fas fa-flask' },
+                { id: 'sports', name: 'Sports', icon: 'fas fa-running' },
+                { id: 'health', name: 'Santé', icon: 'fas fa-heartbeat' },
+                { id: 'entertainment', name: 'Divertissement', icon: 'fas fa-film' }
+            ],
+            defaultCategory: 'general',
+            pageSize: 9
+        };
+
+        // State
+        let currentCategory = config.defaultCategory;
+        let breakingNews = '';
+
+        // DOM Elements
+        const categoryNav = document.getElementById('categoryNav');
+        const featuredNews = document.getElementById('featuredNews');
+        const newsGrid = document.getElementById('newsGrid');
+        const currentCategoryTitle = document.getElementById('currentCategoryTitle');
+        const marquee = document.querySelector('marquee');
+
+        // Initialize the app
+        function init() {
+            renderCategories();
+            loadNews(currentCategory);
+            loadBreakingNews();
+        }
+
+        // Render category navigation
+        function renderCategories() {
+            categoryNav.innerHTML = '';
+            config.categories.forEach(category => {
+                const isActive = category.id === currentCategory;
+                const categoryBtn = document.createElement('button');
+                categoryBtn.className = `category-btn flex flex-col items-center px-2 py-1 whitespace-nowrap ${isActive ? 'active text-blue-500' : 'text-gray-600 hover:text-blue-500'}`;
+                categoryBtn.innerHTML = `
+                    <i class="${category.icon} text-lg mb-1"></i>
+                    <span class="text-sm font-medium">${category.name}</span>
+                `;
+                categoryBtn.addEventListener('click', () => {
+                    currentCategory = category.id;
+                    currentCategoryTitle.textContent = category.name;
+                    renderCategories();
+                    loadNews(currentCategory);
+                });
+                categoryNav.appendChild(categoryBtn);
+            });
+        }
+
+        // Load news from API
+        async function loadNews(category) {
+            // Show loading state
+            newsGrid.innerHTML = `
+                <div class="skeleton bg-white rounded-xl shadow-md overflow-hidden news-card h-64"></div>
+                <div class="skeleton bg-white rounded-xl shadow-md overflow-hidden news-card h-64"></div>
+                <div class="skeleton bg-white rounded-xl shadow-md overflow-hidden news-card h-64"></div>
+            `;
+            
+            try {
+                // Using NewsAPI (you would need to replace with your actual API key)
+                const response = await axios.get(`https://newsapi.org/v2/top-headlines?country=fr&category=${category}&pageSize=${config.pageSize}&apiKey=${config.apiKey}`);
+                
+                const articles = response.data.articles;
+                
+                if (articles.length > 0) {
+                    // Render featured news (first article)
+                    const featured = articles[0];
+                    featuredNews.innerHTML = `
+                        <img src="${featured.urlToImage || 'https://via.placeholder.com/800x400?text=Image+non+disponible'}" alt="${featured.title}" class="w-full h-64 md:h-80 object-cover">
+                        <div class="p-6">
+                            <div class="flex items-center mb-2">
+                                <span class="text-sm text-gray-500">${new Date(featured.publishedAt).toLocaleDateString()}</span>
+                                <span class="mx-2 text-gray-300">•</span>
+                                <span class="text-sm text-blue-500 font-medium">${featured.source.name}</span>
+                            </div>
+                            <h3 class="text-xl md:text-2xl font-bold mb-3 text-gray-800">${featured.title}</h3>
+                            <p class="text-gray-600 mb-4">${featured.description || 'Aucune description disponible'}</p>
+                            <a href="${featured.url}" target="_blank" class="inline-flex items-center text-blue-500 hover:text-blue-700 font-medium">
+                                Lire la suite
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    `;
+                    
+                    // Render news grid (remaining articles)
+                    newsGrid.innerHTML = '';
+                    articles.slice(1).forEach(article => {
+                        const newsCard = document.createElement('div');
+                        newsCard.className = 'bg-white rounded-xl shadow-md overflow-hidden news-card';
+                        newsCard.innerHTML = `
+                            <img src="${article.urlToImage || 'https://via.placeholder.com/400x200?text=Image+non+disponible'}" alt="${article.title}" class="w-full h-40 object-cover">
+                            <div class="p-4">
+                                <div class="flex items-center mb-2">
+                                    <span class="text-xs text-gray-500">${new Date(article.publishedAt).toLocaleDateString()}</span>
+                                    <span class="mx-2 text-gray-300">•</span>
+                                    <span class="text-xs text-blue-500 font-medium">${article.source.name}</span>
+                                </div>
+                                <h3 class="text-lg font-bold mb-2 text-gray-800">${article.title}</h3>
+                                <p class="text-sm text-gray-600 mb-3 line-clamp-2">${article.description || 'Aucune description disponible'}</p>
+                                <a href="${article.url}" target="_blank" class="text-sm text-blue-500 hover:text-blue-700 font-medium flex items-center">
+                                    Lire plus
+                                    <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                                </a>
+                            </div>
+                        `;
+                        newsGrid.appendChild(newsCard);
+                    });
+                } else {
+                    newsGrid.innerHTML = `
+                        <div class="col-span-3 text-center py-10">
+                            <i class="fas fa-newspaper text-5xl text-gray-300 mb-4"></i>
+                            <h3 class="text-xl font-medium text-gray-600">Aucune actualité disponible</h3>
+                            <p class="text-gray-500 mt-2">Essayez de rafraîchir la page ou de changer de catégorie</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching news:', error);
+                newsGrid.innerHTML = `
+                    <div class="col-span-3 text-center py-10">
+                        <i class="fas fa-exclamation-triangle text-5xl text-red-300 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-600">Erreur de chargement</h3>
+                        <p class="text-gray-500 mt-2">Impossible de charger les actualités. Veuillez réessayer plus tard.</p>
+                        <button onclick="loadNews(currentCategory)" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-sync-alt mr-2"></i> Réessayer
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Load breaking news
+        async function loadBreakingNews() {
+            try {
+                const response = await axios.get(`https://newsapi.org/v2/top-headlines?country=fr&pageSize=1&apiKey=${config.apiKey}`);
+                if (response.data.articles.length > 0) {
+                    breakingNews = response.data.articles[0].title;
+                    marquee.textContent = breakingNews;
+                }
+            } catch (error) {
+                console.error('Error fetching breaking news:', error);
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

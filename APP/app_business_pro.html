@@ -1,0 +1,987 @@
+
+    
+    <!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusinessPro - Gestion Commerciale Intégrée</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-collapsed {
+            width: 70px !important;
+        }
+        .sidebar-collapsed .nav-text {
+            display: none;
+        }
+        .sidebar-collapsed .logo-text {
+            display: none;
+        }
+        .sidebar-collapsed .menu-toggle {
+            justify-content: center !important;
+        }
+        .sidebar-collapsed .nav-item {
+            justify-content: center !important;
+        }
+        .page-enter-active,
+        .page-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        .page-enter-from,
+        .page-leave-to {
+            opacity: 0;
+        }
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.2s ease;
+        }
+        .fade-enter-from,
+        .fade-leave-to {
+            opacity: 0;
+        }
+        .document-status {
+            position: relative;
+            padding-left: 20px;
+        }
+        .document-status:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .status-draft:before {
+            background-color: #9ca3af;
+        }
+        .status-sent:before {
+            background-color: #3b82f6;
+        }
+        .status-accepted:before {
+            background-color: #10b981;
+        }
+        .status-paid:before {
+            background-color: #10b981;
+        }
+        .status-overdue:before {
+            background-color: #ef4444;
+        }
+        .status-refused:before {
+            background-color: #ef4444;
+        }
+        .status-partial:before {
+            background-color: #f59e0b;
+        }
+        .status-cancelled:before {
+            background-color: #6b7280;
+        }
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .document-card {
+            transition: all 0.2s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app">
+        <!-- Sidebar -->
+        <div class="fixed top-0 left-0 h-screen w-64 bg-blue-800 text-white shadow-lg transition-all duration-300 z-50" :class="{'sidebar-collapsed': sidebarCollapsed}">
+            <div class="flex items-center justify-between p-4 border-b border-blue-700">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-chart-line text-xl"></i>
+                    <span class="logo-text font-bold text-lg">BusinessPro</span>
+                </div>
+                <button @click="toggleSidebar" class="text-white focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <div class="p-4">
+                <div class="relative mb-4">
+                    <input type="text" placeholder="Rechercher..." class="w-full bg-blue-700 text-white placeholder-blue-300 rounded-md py-2 px-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <i class="fas fa-search absolute left-3 top-3 text-blue-300"></i>
+                </div>
+                
+                <nav class="mt-6">
+                    <div class="space-y-1">
+                        <a href="#" @click="setActiveView('dashboard')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'dashboard' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            <span class="nav-text">Tableau de bord</span>
+                        </a>
+                        <a href="#" @click="setActiveView('quotes')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'quotes' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                            <i class="fas fa-file-invoice mr-3"></i>
+                            <span class="nav-text">Devis</span>
+                            <span class="ml-auto bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+                        </a>
+                        <a href="#" @click="setActiveView('orders')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'orders' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                            <i class="fas fa-shopping-cart mr-3"></i>
+                            <span class="nav-text">Commandes</span>
+                        </a>
+                        <a href="#" @click="setActiveView('deliveries')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'deliveries' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                            <i class="fas fa-truck mr-3"></i>
+                            <span class="nav-text">Livraisons</span>
+                        </a>
+                        <a href="#" @click="setActiveView('invoices')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'invoices' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                            <i class="fas fa-file-invoice-dollar mr-3"></i>
+                            <span class="nav-text">Factures</span>
+                            <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">2</span>
+                        </a>
+                        <a href="#" @click="setActiveView('payments')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'payments' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                            <i class="fas fa-money-bill-wave mr-3"></i>
+                            <span class="nav-text">Paiements</span>
+                        </a>
+                        <a href="#" @click="setActiveView('credit-notes')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'credit-notes' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                            <i class="fas fa-file-invoice mr-3"></i>
+                            <span class="nav-text">Avoirs</span>
+                        </a>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <p class="px-3 text-xs font-semibold text-blue-400 uppercase tracking-wider nav-text">Gestion</p>
+                        <div class="mt-2 space-y-1">
+                            <a href="#" @click="setActiveView('clients')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'clients' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                                <i class="fas fa-users mr-3"></i>
+                                <span class="nav-text">Clients</span>
+                            </a>
+                            <a href="#" @click="setActiveView('products')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'products' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                                <i class="fas fa-boxes mr-3"></i>
+                                <span class="nav-text">Produits</span>
+                            </a>
+                            <a href="#" @click="setActiveView('reports')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'reports' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                                <i class="fas fa-chart-pie mr-3"></i>
+                                <span class="nav-text">Rapports</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <p class="px-3 text-xs font-semibold text-blue-400 uppercase tracking-wider nav-text">Administration</p>
+                        <div class="mt-2 space-y-1">
+                            <a href="#" @click="setActiveView('settings')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'settings' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                                <i class="fas fa-cog mr-3"></i>
+                                <span class="nav-text">Paramètres</span>
+                            </a>
+                            <a href="#" @click="setActiveView('users')" class="flex items-center px-3 py-2 rounded-md text-sm font-medium" :class="activeView === 'users' ? 'bg-blue-900 text-white' : 'text-blue-200 hover:bg-blue-700 hover:text-white'">
+                                <i class="fas fa-user-shield mr-3"></i>
+                                <span class="nav-text">Utilisateurs</span>
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-blue-700">
+                <div class="flex items-center">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" class="w-8 h-8 rounded-full">
+                    <div class="ml-3 nav-text">
+                        <p class="text-sm font-medium text-white">John Doe</p>
+                        <p class="text-xs text-blue-300">Administrateur</p>
+                    </div>
+                    <button class="ml-auto text-blue-300 hover:text-white">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="ml-64 transition-all duration-300" :class="{'ml-16': sidebarCollapsed}">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <h1 class="text-xl font-semibold text-gray-800">{{ getPageTitle() }}</h1>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button class="p-2 text-gray-600 hover:text-blue-600 focus:outline-none">
+                            <i class="fas fa-bell"></i>
+                            <span class="absolute top-3 right-3 h-2 w-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <button class="p-2 text-gray-600 hover:text-blue-600 focus:outline-none">
+                            <i class="fas fa-envelope"></i>
+                            <span class="absolute top-3 right-3 h-2 w-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <button @click="toggleTheme" class="p-2 text-gray-600 hover:text-blue-600 focus:outline-none">
+                            <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+                        </button>
+                        <button @click="toggleFullscreen" class="p-2 text-gray-600 hover:text-blue-600 focus:outline-none">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <main class="p-6">
+                <!-- Dashboard View -->
+                <transition name="page" mode="out-in">
+                    <div v-if="activeView === 'dashboard'" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500 text-sm font-medium">Chiffre d'affaires</p>
+                                        <p class="text-2xl font-bold text-gray-800 mt-1">24,580 €</p>
+                                        <p class="text-green-500 text-xs mt-1"><i class="fas fa-arrow-up mr-1"></i> 12% vs mois dernier</p>
+                                    </div>
+                                    <div class="bg-blue-100 p-3 rounded-full">
+                                        <i class="fas fa-euro-sign text-blue-600 text-xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500 text-sm font-medium">Factures impayées</p>
+                                        <p class="text-2xl font-bold text-gray-800 mt-1">5,230 €</p>
+                                        <p class="text-red-500 text-xs mt-1"><i class="fas fa-exclamation-circle mr-1"></i> 2 en retard</p>
+                                    </div>
+                                    <div class="bg-red-100 p-3 rounded-full">
+                                        <i class="fas fa-file-invoice-dollar text-red-600 text-xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500 text-sm font-medium">Devis en attente</p>
+                                        <p class="text-2xl font-bold text-gray-800 mt-1">3</p>
+                                        <p class="text-yellow-500 text-xs mt-1"><i class="fas fa-clock mr-1"></i> 1 expirant bientôt</p>
+                                    </div>
+                                    <div class="bg-yellow-100 p-3 rounded-full">
+                                        <i class="fas fa-file-signature text-yellow-600 text-xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500 text-sm font-medium">Commandes en cours</p>
+                                        <p class="text-2xl font-bold text-gray-800 mt-1">7</p>
+                                        <p class="text-blue-500 text-xs mt-1"><i class="fas fa-truck mr-1"></i> 2 à expédier</p>
+                                    </div>
+                                    <div class="bg-green-100 p-3 rounded-full">
+                                        <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-lg font-semibold text-gray-800">Activité récente</h2>
+                                    <button class="text-sm text-blue-600 hover:text-blue-800">Voir tout</button>
+                                </div>
+                                <div class="space-y-4">
+                                    <div v-for="activity in recentActivities" :key="activity.id" class="flex items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                                        <div class="flex-shrink-0 mt-1">
+                                            <div :class="`bg-${activity.color}-100 p-2 rounded-full`">
+                                                <i :class="`fas ${activity.icon} text-${activity.color}-600`"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-800">{{ activity.title }}</p>
+                                            <p class="text-xs text-gray-500">{{ activity.description }}</p>
+                                            <p class="text-xs text-gray-400 mt-1">{{ activity.time }}</p>
+                                        </div>
+                                        <div class="ml-auto">
+                                            <span v-if="activity.amount" class="text-sm font-medium" :class="`text-${activity.color}-600`">{{ activity.amount }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-lg font-semibold text-gray-800">Statut des documents</h2>
+                                </div>
+                                <div class="space-y-4">
+                                    <div v-for="stat in documentStats" :key="stat.type" class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div :class="`bg-${stat.color}-100 p-2 rounded-full`">
+                                                <i :class="`fas ${stat.icon} text-${stat.color}-600`"></i>
+                                            </div>
+                                            <span class="ml-3 text-sm font-medium text-gray-700">{{ stat.type }}</span>
+                                        </div>
+                                        <span class="text-sm font-semibold" :class="`text-${stat.color}-600`">{{ stat.count }}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-gray-100">
+                                    <h3 class="text-sm font-medium text-gray-700 mb-2">Progression mensuelle</h3>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                    <div class="flex justify-between mt-1">
+                                        <span class="text-xs text-gray-500">Objectif: 100%</span>
+                                        <span class="text-xs font-medium text-blue-600">65%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-lg font-semibold text-gray-800">Derniers devis</h2>
+                                    <button @click="setActiveView('quotes')" class="text-sm text-blue-600 hover:text-blue-800">Voir tout</button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="quote in recentQuotes" :key="quote.id" class="hover:bg-gray-50 cursor-pointer" @click="viewDocument('quote', quote.id)">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ quote.reference }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ quote.client }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ quote.amount }} €</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${quote.statusColor}-100 text-${quote.statusColor}-800`">{{ quote.status }}</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-lg font-semibold text-gray-800">Dernières factures</h2>
+                                    <button @click="setActiveView('invoices')" class="text-sm text-blue-600 hover:text-blue-800">Voir tout</button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="invoice in recentInvoices" :key="invoice.id" class="hover:bg-gray-50 cursor-pointer" @click="viewDocument('invoice', invoice.id)">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ invoice.reference }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ invoice.client }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ invoice.amount }} €</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${invoice.statusColor}-100 text-${invoice.statusColor}-800`">{{ invoice.status }}</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quotes View -->
+                    <div v-else-if="activeView === 'quotes'" class="space-y-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <h2 class="text-2xl font-bold text-gray-800">Gestion des devis</h2>
+                            <div class="flex space-x-3 mt-4 md:mt-0">
+                                <button @click="openNewDocumentModal('quote')" class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-plus mr-2"></i> Nouveau devis
+                                </button>
+                                <div class="relative">
+                                    <button @click="toggleFilterDropdown" class="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <i class="fas fa-filter mr-2"></i> Filtres
+                                    </button>
+                                    <div v-if="filterDropdownOpen" class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                        <div class="p-4">
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                                                <select class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                    <option>Tous</option>
+                                                    <option>Brouillon</option>
+                                                    <option>Envoyé</option>
+                                                    <option>Accepté</option>
+                                                    <option>Refusé</option>
+                                                    <option>Expiré</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                                <select class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                    <option>Toutes</option>
+                                                    <option>Aujourd'hui</option>
+                                                    <option>Cette semaine</option>
+                                                    <option>Ce mois</option>
+                                                    <option>Personnalisé</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex justify-end">
+                                                <button @click="applyFilters" class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Appliquer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="relative flex-1 md:w-64">
+                                    <input type="text" placeholder="Rechercher..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow overflow-hidden">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-600">Total: {{ filteredQuotes.length }} devis</span>
+                                    <span v-if="selectedQuotes.length > 0" class="text-sm text-blue-600">{{ selectedQuotes.length }} sélectionné(s)</span>
+                                </div>
+                                <div class="flex space-x-2 mt-3 md:mt-0">
+                                    <button v-if="selectedQuotes.length > 0" @click="exportSelected" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                                        <i class="fas fa-file-export mr-2"></i> Exporter
+                                    </button>
+                                    <button v-if="selectedQuotes.length > 0" @click="deleteSelected" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center text-red-600">
+                                        <i class="fas fa-trash mr-2"></i> Supprimer
+                                    </button>
+                                    <div class="relative">
+                                        <button @click="toggleBulkActions" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                                            <i class="fas fa-tasks mr-2"></i> Actions groupées
+                                        </button>
+                                        <div v-if="bulkActionsOpen" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                            <div class="py-1">
+                                                <a href="#" @click.prevent="bulkChangeStatus('sent')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer comme envoyé</a>
+                                                <a href="#" @click.prevent="bulkChangeStatus('accepted')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer comme accepté</a>
+                                                <a href="#" @click.prevent="bulkChangeStatus('refused')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer comme refusé</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Échéance</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr v-for="quote in filteredQuotes" :key="quote.id" class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <input type="checkbox" v-model="selectedQuotes" :value="quote.id" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                <a href="#" @click.prevent="viewDocument('quote', quote.id)" class="text-blue-600 hover:text-blue-800">{{ quote.reference }}</a>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ quote.client }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(quote.date) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(quote.dueDate) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ quote.amount }} €</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${quote.statusColor}-100 text-${quote.statusColor}-800`">{{ quote.status }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div class="flex justify-end space-x-2">
+                                                    <button @click="viewDocument('quote', quote.id)" class="text-blue-600 hover:text-blue-900">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button @click="editDocument('quote', quote.id)" class="text-gray-600 hover:text-gray-900">
+                                                        <i class="fas fa-pencil-alt"></i>
+                                                    </button>
+                                                    <button @click="duplicateDocument('quote', quote.id)" class="text-purple-600 hover:text-purple-900">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                    <button @click="convertToOrder(quote.id)" v-if="quote.status === 'Accepté'" class="text-green-600 hover:text-green-900" title="Convertir en commande">
+                                                        <i class="fas fa-shopping-cart"></i>
+                                                    </button>
+                                                    <button @click="deleteDocument('quote', quote.id)" class="text-red-600 hover:text-red-900">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr v-if="filteredQuotes.length === 0">
+                                            <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">
+                                                Aucun devis trouvé
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Précédent
+                                    </button>
+                                    <button @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage === totalPages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Suivant
+                                    </button>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            Affichage de <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> à <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, filteredQuotes.length) }}</span> sur <span class="font-medium">{{ filteredQuotes.length }}</span> résultats
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                            <button @click="currentPage = 1" :disabled="currentPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Premier</span>
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </button>
+                                            <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Précédent</span>
+                                                <i class="fas fa-angle-left"></i>
+                                            </button>
+                                            <button v-for="page in visiblePages" :key="page" @click="currentPage = page" :class="{'z-10 bg-blue-50 border-blue-500 text-blue-600': currentPage === page, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentPage !== page}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                                {{ page }}
+                                            </button>
+                                            <button @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage === totalPages" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Suivant</span>
+                                                <i class="fas fa-angle-right"></i>
+                                            </button>
+                                            <button @click="currentPage = totalPages" :disabled="currentPage === totalPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Dernier</span>
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Orders View -->
+                    <div v-else-if="activeView === 'orders'" class="space-y-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <h2 class="text-2xl font-bold text-gray-800">Gestion des commandes</h2>
+                            <div class="flex space-x-3 mt-4 md:mt-0">
+                                <button @click="openNewDocumentModal('order')" class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-plus mr-2"></i> Nouvelle commande
+                                </button>
+                                <div class="relative">
+                                    <button @click="toggleOrderFilterDropdown" class="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <i class="fas fa-filter mr-2"></i> Filtres
+                                    </button>
+                                    <div v-if="orderFilterDropdownOpen" class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                        <div class="p-4">
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                                                <select class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                    <option>Tous</option>
+                                                    <option>En préparation</option>
+                                                    <option>Expédié</option>
+                                                    <option>Livré</option>
+                                                    <option>Annulé</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                                <select class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                    <option>Toutes</option>
+                                                    <option>Aujourd'hui</option>
+                                                    <option>Cette semaine</option>
+                                                    <option>Ce mois</option>
+                                                    <option>Personnalisé</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex justify-end">
+                                                <button @click="applyOrderFilters" class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Appliquer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="relative flex-1 md:w-64">
+                                    <input type="text" placeholder="Rechercher..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow overflow-hidden">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-600">Total: {{ filteredOrders.length }} commandes</span>
+                                    <span v-if="selectedOrders.length > 0" class="text-sm text-blue-600">{{ selectedOrders.length }} sélectionné(s)</span>
+                                </div>
+                                <div class="flex space-x-2 mt-3 md:mt-0">
+                                    <button v-if="selectedOrders.length > 0" @click="exportSelectedOrders" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                                        <i class="fas fa-file-export mr-2"></i> Exporter
+                                    </button>
+                                    <button v-if="selectedOrders.length > 0" @click="deleteSelectedOrders" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center text-red-600">
+                                        <i class="fas fa-trash mr-2"></i> Supprimer
+                                    </button>
+                                    <div class="relative">
+                                        <button @click="toggleOrderBulkActions" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                                            <i class="fas fa-tasks mr-2"></i> Actions groupées
+                                        </button>
+                                        <div v-if="orderBulkActionsOpen" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                            <div class="py-1">
+                                                <a href="#" @click.prevent="bulkChangeOrderStatus('preparation')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer en préparation</a>
+                                                <a href="#" @click.prevent="bulkChangeOrderStatus('shipped')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer comme expédié</a>
+                                                <a href="#" @click.prevent="bulkChangeOrderStatus('delivered')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer comme livré</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <input type="checkbox" v-model="selectAllOrders" @change="toggleSelectAllOrders" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Livraison prévue</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr v-for="order in filteredOrders" :key="order.id" class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <input type="checkbox" v-model="selectedOrders" :value="order.id" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                <a href="#" @click.prevent="viewDocument('order', order.id)" class="text-blue-600 hover:text-blue-800">{{ order.reference }}</a>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.client }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(order.date) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(order.deliveryDate) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.amount }} €</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${order.statusColor}-100 text-${order.statusColor}-800`">{{ order.status }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div class="flex justify-end space-x-2">
+                                                    <button @click="viewDocument('order', order.id)" class="text-blue-600 hover:text-blue-900">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button @click="editDocument('order', order.id)" class="text-gray-600 hover:text-gray-900">
+                                                        <i class="fas fa-pencil-alt"></i>
+                                                    </button>
+                                                    <button @click="duplicateDocument('order', order.id)" class="text-purple-600 hover:text-purple-900">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                    <button @click="generateDelivery(order.id)" v-if="order.status === 'En préparation'" class="text-green-600 hover:text-green-900" title="Générer bon de livraison">
+                                                        <i class="fas fa-truck"></i>
+                                                    </button>
+                                                    <button @click="generateInvoiceFromOrder(order.id)" v-if="order.status === 'Expédié' || order.status === 'Livré'" class="text-indigo-600 hover:text-indigo-900" title="Générer facture">
+                                                        <i class="fas fa-file-invoice-dollar"></i>
+                                                    </button>
+                                                    <button @click="deleteDocument('order', order.id)" class="text-red-600 hover:text-red-900">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr v-if="filteredOrders.length === 0">
+                                            <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">
+                                                Aucune commande trouvée
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <button @click="currentOrderPage = Math.max(1, currentOrderPage - 1)" :disabled="currentOrderPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Précédent
+                                    </button>
+                                    <button @click="currentOrderPage = Math.min(totalOrderPages, currentOrderPage + 1)" :disabled="currentOrderPage === totalOrderPages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Suivant
+                                    </button>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            Affichage de <span class="font-medium">{{ (currentOrderPage - 1) * itemsPerPage + 1 }}</span> à <span class="font-medium">{{ Math.min(currentOrderPage * itemsPerPage, filteredOrders.length) }}</span> sur <span class="font-medium">{{ filteredOrders.length }}</span> résultats
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                            <button @click="currentOrderPage = 1" :disabled="currentOrderPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Premier</span>
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </button>
+                                            <button @click="currentOrderPage = Math.max(1, currentOrderPage - 1)" :disabled="currentOrderPage === 1" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Précédent</span>
+                                                <i class="fas fa-angle-left"></i>
+                                            </button>
+                                            <button v-for="page in visibleOrderPages" :key="page" @click="currentOrderPage = page" :class="{'z-10 bg-blue-50 border-blue-500 text-blue-600': currentOrderPage === page, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentOrderPage !== page}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                                {{ page }}
+                                            </button>
+                                            <button @click="currentOrderPage = Math.min(totalOrderPages, currentOrderPage + 1)" :disabled="currentOrderPage === totalOrderPages" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Suivant</span>
+                                                <i class="fas fa-angle-right"></i>
+                                            </button>
+                                            <button @click="currentOrderPage = totalOrderPages" :disabled="currentOrderPage === totalOrderPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Dernier</span>
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoices View -->
+                    <div v-else-if="activeView === 'invoices'" class="space-y-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <h2 class="text-2xl font-bold text-gray-800">Gestion des factures</h2>
+                            <div class="flex space-x-3 mt-4 md:mt-0">
+                                <button @click="openNewDocumentModal('invoice')" class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-plus mr-2"></i> Nouvelle facture
+                                </button>
+                                <div class="relative">
+                                    <button @click="toggleInvoiceFilterDropdown" class="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <i class="fas fa-filter mr-2"></i> Filtres
+                                    </button>
+                                    <div v-if="invoiceFilterDropdownOpen" class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                        <div class="p-4">
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                                                <select class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                    <option>Tous</option>
+                                                    <option>Brouillon</option>
+                                                    <option>Envoyé</option>
+                                                    <option>Payé</option>
+                                                    <option>Partiel</option>
+                                                    <option>En retard</option>
+                                                    <option>Annulé</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                                <select class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                    <option>Toutes</option>
+                                                    <option>Aujourd'hui</option>
+                                                    <option>Cette semaine</option>
+                                                    <option>Ce mois</option>
+                                                    <option>Personnalisé</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex justify-end">
+                                                <button @click="applyInvoiceFilters" class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Appliquer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="relative flex-1 md:w-64">
+                                    <input type="text" placeholder="Rechercher..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow overflow-hidden">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-600">Total: {{ filteredInvoices.length }} factures</span>
+                                    <span v-if="selectedInvoices.length > 0" class="text-sm text-blue-600">{{ selectedInvoices.length }} sélectionné(s)</span>
+                                </div>
+                                <div class="flex space-x-2 mt-3 md:mt-0">
+                                    <button v-if="selectedInvoices.length > 0" @click="exportSelectedInvoices" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                                        <i class="fas fa-file-export mr-2"></i> Exporter
+                                    </button>
+                                    <button v-if="selectedInvoices.length > 0" @click="deleteSelectedInvoices" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center text-red-600">
+                                        <i class="fas fa-trash mr-2"></i> Supprimer
+                                    </button>
+                                    <div class="relative">
+                                        <button @click="toggleInvoiceBulkActions" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                                            <i class="fas fa-tasks mr-2"></i> Actions groupées
+                                        </button>
+                                        <div v-if="invoiceBulkActionsOpen" class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                            <div class="py-1">
+                                                <a href="#" @click.prevent="bulkChangeInvoiceStatus('sent')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer comme envoyé</a>
+                                                <a href="#" @click.prevent="bulkChangeInvoiceStatus('paid')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer comme payé</a>
+                                                <a href="#" @click.prevent="bulkChangeInvoiceStatus('cancelled')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Marquer comme annulé</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <input type="checkbox" v-model="selectAllInvoices" @change="toggleSelectAllInvoices" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Échéance</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payé</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr v-for="invoice in filteredInvoices" :key="invoice.id" class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <input type="checkbox" v-model="selectedInvoices" :value="invoice.id" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                <a href="#" @click.prevent="viewDocument('invoice', invoice.id)" class="text-blue-600 hover:text-blue-800">{{ invoice.reference }}</a>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ invoice.client }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(invoice.date) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(invoice.dueDate) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ invoice.amount }} €</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ invoice.paid }} €</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${invoice.statusColor}-100 text-${invoice.statusColor}-800`">{{ invoice.status }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div class="flex justify-end space-x-2">
+                                                    <button @click="viewDocument('invoice', invoice.id)" class="text-blue-600 hover:text-blue-900">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button @click="editDocument('invoice', invoice.id)" class="text-gray-600 hover:text-gray-900">
+                                                        <i class="fas fa-pencil-alt"></i>
+                                                    </button>
+                                                    <button @click="duplicateDocument('invoice', invoice.id)" class="text-purple-600 hover:text-purple-900">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                    <button @click="recordPayment(invoice.id)" v-if="invoice.status !== 'Payé' && invoice.status !== 'Annulé'" class="text-green-600 hover:text-green-900" title="Enregistrer paiement">
+                                                        <i class="fas fa-money-bill-wave"></i>
+                                                    </button>
+                                                    <button @click="generateCreditNote(invoice.id)" v-if="invoice.status !== 'Annulé'" class="text-orange-600 hover:text-orange-900" title="Créer avoir">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </button>
+                                                    <button @click="deleteDocument('invoice', invoice.id)" class="text-red-600 hover:text-red-900">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr v-if="filteredInvoices.length === 0">
+                                            <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">
+                                                Aucune facture trouvée
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <button @click="currentInvoicePage = Math.max(1, currentInvoicePage - 1)" :disabled="currentInvoicePage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Précédent
+                                    </button>
+                                    <button @click="currentInvoicePage = Math.min(totalInvoicePages, currentInvoicePage + 1)" :disabled="currentInvoicePage === totalInvoicePages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Suivant
+                                    </button>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            Affichage de <span class="font-medium">{{ (currentInvoicePage - 1) * itemsPerPage + 1 }}</span> à <span class="font-medium">{{ Math.min(currentInvoicePage * itemsPerPage, filteredInvoices.length) }}</span> sur <span class="font-medium">{{ filteredInvoices.length }}</span> résultats
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                            <button @click="currentInvoicePage = 1" :disabled="currentInvoicePage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Premier</span>
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </button>
+                                            <button @click="currentInvoicePage = Math.max(1, currentInvoicePage - 1)" :disabled="currentInvoicePage === 1" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Précédent</span>
+                                                <i class="fas fa-angle-left"></i>
+                                            </button>
+                                            <button v-for="page in visibleInvoicePages" :key="page" @click="currentInvoicePage = page" :class="{'z-10 bg-blue-50 border-blue-500 text-blue-600': currentInvoicePage === page, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentInvoicePage !== page}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                                {{ page }}
+                                            </button>
+                                            <button @click="currentInvoicePage = Math.min(totalInvoicePages, currentInvoicePage + 1)" :disabled="currentInvoicePage === totalInvoicePages" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Suivant</span>
+                                                <i class="fas fa-angle-right"></i>
+                                            </button>
+                                            <button @click="currentInvoicePage = totalInvoicePages" :disabled="currentInvoicePage === totalInvoicePages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Dernier</span>
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Document Preview Modal -->
+                    <div v-if="previewModalOpen" class="fixed inset-0 z-50 overflow-y-auto">
+                        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                            </div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                            {{ previewDocument.type === 'quote' ? 'Devis' : previewDocument.type === 'order' ? 'Commande' : 'Facture' }} #{{ previewDocument.reference }}
+                                        </h3>
+                                        <button @click="previewModalOpen = false" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="mt-4">
+                                        <div class="flex justify-between mb-6">
+                                            <div>
+                                                <h4 class="text-lg font-semibold">BusinessPro</h4>
+                                                <p class="text-sm text-gray-600">123 Rue de Commerce</p>
+                                                <p class="
+</body>
+</html>

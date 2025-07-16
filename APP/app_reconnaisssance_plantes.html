@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Identifier</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .camera-view {
+            width: 100%;
+            height: 350px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .captured-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .camera-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .result-card {
+            transition: all 0.3s ease;
+        }
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        .category-badge {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.5s;
+        }
+        .fade-enter, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="container py-5">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-green-700 mb-2">
+                <i class="fas fa-leaf mr-2"></i>Plant Identifier
+            </h1>
+            <p class="text-gray-600">Take a photo of a plant and discover its name and characteristics</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="camera-container bg-white p-4 mb-5">
+                    <div class="camera-view">
+                        <video ref="video" v-show="!capturedImage" autoplay playsinline class="w-full h-full object-cover"></video>
+                        <img v-if="capturedImage" :src="capturedImage" class="captured-image" alt="Captured plant">
+                        <div v-if="!capturedImage && !isCameraReady" class="text-center p-4">
+                            <i class="fas fa-camera text-4xl text-gray-400 mb-3"></i>
+                            <p>Loading camera...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="camera-controls">
+                        <button @click="takePhoto" v-if="!capturedImage && isCameraReady" 
+                                class="bg-green-600 hover:bg-green-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+                            <i class="fas fa-camera text-xl"></i>
+                        </button>
+                        <button @click="retakePhoto" v-if="capturedImage" 
+                                class="bg-gray-600 hover:bg-gray-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                        <button @click="identifyPlant" v-if="capturedImage && !isIdentifying" 
+                                :disabled="isIdentifying"
+                                class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 h-12 flex items-center justify-center shadow-lg">
+                            <i class="fas fa-search mr-2"></i> Identify
+                        </button>
+                        <button v-if="isIdentifying" 
+                                class="bg-blue-400 text-white rounded-full px-6 h-12 flex items-center justify-center shadow-lg" disabled>
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Identifying...
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="errorMessage" class="alert alert-danger mb-5">
+                    <i class="fas fa-exclamation-circle mr-2"></i> {{ errorMessage }}
+                </div>
+
+                <transition name="fade">
+                    <div v-if="plantResult" class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <h2 class="text-2xl font-bold text-gray-800">{{ plantResult.name }}</h2>
+                                <span :class="'category-badge bg-' + getCategoryColor(plantResult.category) + '-100 text-' + getCategoryColor(plantResult.category) + '-800'">
+                                    {{ plantResult.category }}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <h3 class="font-semibold text-gray-700 mb-2">Scientific Name</h3>
+                                    <p class="text-gray-600 italic">{{ plantResult.scientificName }}</p>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-700 mb-2">Family</h3>
+                                    <p class="text-gray-600">{{ plantResult.family }}</p>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-700 mb-2">Common Names</h3>
+                                    <p class="text-gray-600">{{ plantResult.commonNames.join(', ') }}</p>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-700 mb-2">Confidence</h3>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-green-600 h-2.5 rounded-full" :style="{width: plantResult.confidence + '%'}"></div>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mt-1">{{ plantResult.confidence }}% match</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <h3 class="font-semibold text-gray-700 mb-2">Description</h3>
+                                <p class="text-gray-600">{{ plantResult.description }}</p>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <h3 class="font-semibold text-gray-700 mb-2">Care Tips</h3>
+                                <ul class="list-disc pl-5 text-gray-600">
+                                    <li v-for="(tip, index) in plantResult.careTips" :key="index">{{ tip }}</li>
+                                </ul>
+                            </div>
+                            
+                            <button @click="savePlant" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">
+                                <i class="fas fa-save mr-2"></i> Save to My Collection
+                            </button>
+                        </div>
+                    </div>
+                </transition>
+
+                <div v-if="savedPlants.length > 0" class="mt-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-bookmark mr-2 text-green-600"></i> My Plant Collection
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div v-for="(plant, index) in savedPlants" :key="index" 
+                             class="result-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                            <img :src="plant.image" class="w-full h-40 object-cover" alt="Plant image">
+                            <div class="p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold text-gray-800">{{ plant.name }}</h3>
+                                    <span :class="'category-badge bg-' + getCategoryColor(plant.category) + '-100 text-' + getCategoryColor(plant.category) + '-800'">
+                                        {{ plant.category }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-600 italic mb-2">{{ plant.scientificName }}</p>
+                                <p class="text-xs text-gray-500">Identified on {{ formatDate(plant.dateIdentified) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock API endpoint - in a real app, replace with actual plant identification API
+        const PLANT_API_URL = 'https://example.com/api/identify-plant';
+        
+        new Vue({
+            el: '#app',
+            data: {
+                isCameraReady: false,
+                capturedImage: null,
+                isIdentifying: false,
+                plantResult: null,
+                errorMessage: '',
+                savedPlants: [],
+                categories: [
+                    'Flower', 'Tree', 'Shrub', 'Fern', 
+                    'Grass', 'Succulent', 'Herb', 'Vegetable'
+                ]
+            },
+            mounted() {
+                this.initCamera();
+                this.loadSavedPlants();
+            },
+            methods: {
+                initCamera() {
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia({ video: true })
+                            .then(stream => {
+                                this.$refs.video.srcObject = stream;
+                                this.isCameraReady = true;
+                            })
+                            .catch(error => {
+                                console.error("Camera error:", error);
+                                this.errorMessage = "Could not access camera. Please ensure you've granted camera permissions.";
+                            });
+                    } else {
+                        this.errorMessage = "Camera access is not supported by your browser.";
+                    }
+                },
+                takePhoto() {
+                    const video = this.$refs.video;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    this.capturedImage = canvas.toDataURL('image/jpeg');
+                },
+                retakePhoto() {
+                    this.capturedImage = null;
+                    this.plantResult = null;
+                    this.errorMessage = '';
+                },
+                identifyPlant() {
+                    if (!this.capturedImage) {
+                        this.errorMessage = "Please take a photo first";
+                        return;
+                    }
+                    
+                    this.isIdentifying = true;
+                    this.errorMessage = '';
+                    
+                    // In a real app, you would send the image to an actual plant identification API
+                    // Here we simulate an API call with a timeout
+                    
+                    // Extract base64 image data
+                    const imageData = this.capturedImage.replace(/^data:image\/(png|jpeg);base64,/, '');
+                    
+                    // Mock API call with axios
+                    axios.post(PLANT_API_URL, { image: imageData })
+                        .then(response => {
+                            // Simulate API response with mock data
+                            setTimeout(() => {
+                                this.plantResult = this.generateMockPlantData();
+                                this.isIdentifying = false;
+                            }, 1500);
+                        })
+                        .catch(error => {
+                            console.error("Identification error:", error);
+                            this.errorMessage = "Failed to identify plant. Please try again.";
+                            this.isIdentifying = false;
+                        });
+                },
+                savePlant() {
+                    if (!this.plantResult) return;
+                    
+                    // Add current date and the image to the plant data
+                    const plantToSave = {
+                        ...this.plantResult,
+                        image: this.capturedImage,
+                        dateIdentified: new Date().toISOString()
+                    };
+                    
+                    this.savedPlants.unshift(plantToSave);
+                    this.saveToLocalStorage();
+                    
+                    // Show success message
+                    alert(`${this.plantResult.name} has been saved to your collection!`);
+                },
+                saveToLocalStorage() {
+                    localStorage.setItem('savedPlants', JSON.stringify(this.savedPlants));
+                },
+                loadSavedPlants() {
+                    const saved = localStorage.getItem('savedPlants');
+                    if (saved) {
+                        this.savedPlants = JSON.parse(saved);
+                    }
+                },
+                getCategoryColor(category) {
+                    // Map categories to colors
+                    const colorMap = {
+                        'Flower': 'pink',
+                        'Tree': 'green',
+                        'Shrub': 'teal',
+                        'Fern': 'blue',
+                        'Grass': 'yellow',
+                        'Succulent': 'orange',
+                        'Herb': 'purple',
+                        'Vegetable': 'red'
+                    };
+                    return colorMap[category] || 'gray';
+                },
+                formatDate(dateString) {
+                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                    return new Date(dateString).toLocaleDateString(undefined, options);
+                },
+                generateMockPlantData() {
+                    // Generate mock plant data for demonstration
+                    const plantNames = [
+                        "Rose", "Tulip", "Sunflower", "Oak Tree", "Maple Tree",
+                        "Aloe Vera", "Basil", "Mint", "Bamboo", "Orchid",
+                        "Cactus", "Lavender", "Daisy", "Fern", "Ivy"
+                    ];
+                    
+                    const scientificNames = [
+                        "Rosa rubiginosa", "Tulipa gesneriana", "Helianthus annuus", 
+                        "Quercus robur", "Acer saccharum", "Aloe barbadensis miller",
+                        "Ocimum basilicum", "Mentha spicata", "Bambusoideae", 
+                        "Orchidaceae", "Cactaceae", "Lavandula", "Bellis perennis",
+                        "Polypodiopsida", "Hedera helix"
+                    ];
+                    
+                    const families = [
+                        "Rosaceae", "Liliaceae", "Asteraceae", "Fagaceae", "Sapindaceae",
+                        "Asphodelaceae", "Lamiaceae", "Lamiaceae", "Poaceae", "Orchidaceae",
+                        "Cactaceae", "Lamiaceae", "Asteraceae", "Polypodiaceae", "Araliaceae"
+                    ];
+                    
+                    const descriptions = [
+                        "A woody perennial flowering plant with fragrant blooms in various colors.",
+                        "A bulbous spring-blooming perennial with colorful cup-shaped flowers.",
+                        "An annual plant with a large flower head that tracks the movement of the sun.",
+                        "A long-lived deciduous tree known for its strength and acorn fruits.",
+                        "A deciduous tree known for its vibrant fall colors and maple syrup production.",
+                        "A succulent plant species with thick, fleshy leaves used for medicinal purposes.",
+                        "A culinary herb with aromatic leaves used in various cuisines worldwide.",
+                        "A perennial herb with fragrant leaves used for flavoring and medicinal purposes.",
+                        "A fast-growing woody grass with hollow stems, used for various purposes.",
+                        "A diverse and widespread family of flowering plants with colorful blooms.",
+                        "A succulent plant adapted to arid environments with reduced leaves.",
+                        "A flowering plant in the mint family known for its fragrance and purple flowers.",
+                        "A common European species of flowering plant with white petals.",
+                        "A group of vascular plants that reproduce via spores rather than seeds.",
+                        "An evergreen climbing plant with aerial rootlets for clinging to surfaces."
+                    ];
+                    
+                    const careTips = [
+                        "Water deeply but infrequently, allowing soil to dry between waterings.",
+                        "Plant in well-draining soil and provide full sun to partial shade.",
+                        "Requires at least 6-8 hours of direct sunlight daily for optimal growth.",
+                        "Prefers deep, fertile, well-drained soil and full sun exposure.",
+                        "Needs regular watering, especially when young, and protection from strong winds.",
+                        "Water sparingly and ensure excellent drainage to prevent root rot.",
+                        "Pinch off flower buds to encourage leaf growth and bushier plants.",
+                        "Grows best in moist soil and partial shade; can be invasive in gardens.",
+                        "Requires regular watering and fertilization for optimal growth.",
+                        "Prefers high humidity, good air circulation, and bright indirect light.",
+                        "Needs minimal water and plenty of sunlight; avoid overwatering.",
+                        "Prune after flowering to maintain shape and promote new growth.",
+                        "Deadhead spent flowers to encourage continuous blooming.",
+                        "Keep soil consistently moist and provide high humidity if possible.",
+                        "Can be grown indoors or outdoors; trim to control growth as needed."
+                    ];
+                    
+                    const randomIndex = Math.floor(Math.random() * plantNames.length);
+                    const category = this.categories[Math.floor(Math.random() * this.categories.length)];
+                    
+                    return {
+                        name: plantNames[randomIndex],
+                        scientificName: scientificNames[randomIndex],
+                        family: families[randomIndex],
+                        commonNames: [
+                            plantNames[randomIndex],
+                            `Common ${plantNames[randomIndex]}`,
+                            `${plantNames[randomIndex]} plant`
+                        ],
+                        description: descriptions[randomIndex],
+                        careTips: [
+                            careTips[randomIndex],
+                            "Fertilize during growing season with balanced plant food.",
+                            "Protect from extreme temperatures and harsh weather conditions."
+                        ],
+                        confidence: Math.floor(Math.random() * 30) + 70, // 70-100%
+                        category: category
+                    };
+                }
+            },
+            beforeDestroy() {
+                // Stop camera stream when component is destroyed
+                if (this.$refs.video && this.$refs.video.srcObject) {
+                    this.$refs.video.srcObject.getTracks().forEach(track => track.stop());
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@ from wagtail.blocks import (
 from wagtail.images.blocks import ImageChooserBlock
 # Create your models here.
 from wagtail.snippets.models import register_snippet
-from .blocks import HeroBlock, AdvancedHeroBlock, ServicesBlock
+from .blocks import HeroBlock, AdvancedHeroBlock, ServicesBlock, ClientsBlock
 
 
 
@@ -33,6 +33,7 @@ class HomePage(Page):
         ('advanced_hero', AdvancedHeroBlock()),
 
         ('services',  ServicesBlock() ),
+        ('clients',  ClientsBlock() ),
         
         ('projects', StructBlock([
             ('title', CharBlock()),

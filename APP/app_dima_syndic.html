@@ -1,0 +1,996 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIMA SYNDIC - Gestion de Copropriété</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="app">
+        <!-- Top Navigation -->
+        <nav class="bg-blue-800 text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <i class="fas fa-building text-2xl mr-2"></i>
+                            <span class="text-xl font-semibold">DIMA SYNDIC</span>
+                        </div>
+                        <div class="hidden md:block ml-10">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-sm opacity-75">Gestion de copropriété intelligente</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-4 flex items-center md:ml-6">
+                            <div class="ml-3 relative">
+                                <div class="flex items-center space-x-4">
+                                    <div class="relative">
+                                        <i class="fas fa-bell text-xl cursor-pointer"></i>
+                                        <span v-if="notifications.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">{{ notifications.length }}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=Admin+Dima" alt="User">
+                                        <span class="ml-2">Admin Dima</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="-mr-2 flex md:hidden">
+                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex items-center justify-center p-2 rounded-md text-white focus:outline-none">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile menu -->
+        <div v-if="mobileMenuOpen" class="md:hidden bg-blue-900 text-white">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <div class="flex items-center px-3 py-2">
+                    <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=Admin+Dima" alt="User">
+                    <span class="ml-2">Admin Dima</span>
+                </div>
+                <div class="border-t border-blue-700 mt-2 pt-2">
+                    <a v-for="item in mobileMenuItems" :key="item.name" href="#" @click.prevent="selectView(item.view)" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800">
+                        <i :class="item.icon" class="mr-2"></i> {{ item.name }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex">
+            <!-- Sidebar -->
+            <div class="hidden md:flex md:flex-shrink-0">
+                <div class="flex flex-col w-64 bg-blue-900 text-white">
+                    <div class="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                        <nav class="mt-5 flex-1 px-2 space-y-1">
+                            <a v-for="item in menuItems" :key="item.name" href="#" @click.prevent="selectView(item.view)" 
+                               :class="{'bg-blue-800': currentView === item.view, 'text-white hover:bg-blue-800': currentView !== item.view}"
+                               class="group flex items-center px-2 py-3 text-sm font-medium rounded-md sidebar-link transition-all duration-200">
+                                <i :class="item.icon" class="mr-3 flex-shrink-0"></i>
+                                {{ item.name }}
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="flex-shrink-0 flex border-t border-blue-800 p-4">
+                        <div class="flex items-center">
+                            <div>
+                                <img class="inline-block h-9 w-9 rounded-full" src="https://ui-avatars.com/api/?name=Admin+Dima" alt="User">
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-white">Admin Dima</p>
+                                <a href="#" class="text-xs font-medium text-blue-200 hover:text-white">Voir profil</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="py-6 px-4 sm:px-6 lg:px-8">
+                    <!-- Dashboard View -->
+                    <transition name="fade" mode="out-in">
+                        <div v-if="currentView === 'dashboard'" key="dashboard">
+                            <h1 class="text-2xl font-bold text-gray-900 mb-6">Tableau de bord</h1>
+                            
+                            <!-- Stats Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                                <div class="bg-white rounded-lg shadow p-6 dashboard-card transition-all duration-300">
+                                    <div class="flex items-center">
+                                        <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                                            <i class="fas fa-users text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-500">Copropriétaires</p>
+                                            <p class="text-2xl font-semibold text-gray-900">{{ stats.owners }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-lg shadow p-6 dashboard-card transition-all duration-300">
+                                    <div class="flex items-center">
+                                        <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                                            <i class="fas fa-home text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-500">Lots</p>
+                                            <p class="text-2xl font-semibold text-gray-900">{{ stats.units }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-lg shadow p-6 dashboard-card transition-all duration-300">
+                                    <div class="flex items-center">
+                                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
+                                            <i class="fas fa-euro-sign text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-500">Recettes ce mois</p>
+                                            <p class="text-2xl font-semibold text-gray-900">{{ formatCurrency(stats.monthlyIncome) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-lg shadow p-6 dashboard-card transition-all duration-300">
+                                    <div class="flex items-center">
+                                        <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
+                                            <i class="fas fa-file-invoice-dollar text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-500">Dépenses ce mois</p>
+                                            <p class="text-2xl font-semibold text-gray-900">{{ formatCurrency(stats.monthlyExpenses) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Payments and Expenses -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                                <div class="bg-white rounded-lg shadow overflow-hidden">
+                                    <div class="px-6 py-4 border-b border-gray-200">
+                                        <h3 class="text-lg font-medium text-gray-900">Derniers paiements</h3>
+                                    </div>
+                                    <div class="divide-y divide-gray-200">
+                                        <div v-for="payment in recentPayments" :key="payment.id" class="px-6 py-4 flex justify-between items-center">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">{{ payment.owner }}</p>
+                                                <p class="text-sm text-gray-500">{{ payment.description }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-sm font-medium text-green-600">{{ formatCurrency(payment.amount) }}</p>
+                                                <p class="text-xs text-gray-500">{{ formatDate(payment.date) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="px-6 py-4 bg-gray-50 text-right">
+                                        <button @click="selectView('payments')" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                                            Voir tous les paiements <i class="fas fa-arrow-right ml-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white rounded-lg shadow overflow-hidden">
+                                    <div class="px-6 py-4 border-b border-gray-200">
+                                        <h3 class="text-lg font-medium text-gray-900">Dernières dépenses</h3>
+                                    </div>
+                                    <div class="divide-y divide-gray-200">
+                                        <div v-for="expense in recentExpenses" :key="expense.id" class="px-6 py-4 flex justify-between items-center">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">{{ expense.supplier }}</p>
+                                                <p class="text-sm text-gray-500">{{ expense.category }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-sm font-medium text-red-600">{{ formatCurrency(expense.amount) }}</p>
+                                                <p class="text-xs text-gray-500">{{ formatDate(expense.date) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="px-6 py-4 bg-gray-50 text-right">
+                                        <button @click="selectView('expenses')" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                                            Voir toutes les dépenses <i class="fas fa-arrow-right ml-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Financial Overview -->
+                            <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+                                <div class="px-6 py-4 border-b border-gray-200">
+                                    <h3 class="text-lg font-medium text-gray-900">Aperçu financier</h3>
+                                </div>
+                                <div class="p-6">
+                                    <div class="h-64">
+                                        <!-- Chart placeholder - in a real app you would use a chart library like Chart.js -->
+                                        <div class="flex items-center justify-center h-full bg-gray-100 rounded-lg">
+                                            <p class="text-gray-500">Graphique des finances (montant vs mois)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payments View -->
+                        <div v-else-if="currentView === 'payments'" key="payments">
+                            <div class="flex justify-between items-center mb-6">
+                                <h1 class="text-2xl font-bold text-gray-900">Gestion des paiements</h1>
+                                <button @click="showPaymentModal = true" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-plus mr-2"></i> Nouveau paiement
+                                </button>
+                            </div>
+
+                            <!-- Filters -->
+                            <div class="bg-white rounded-lg shadow p-4 mb-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
+                                        <input v-model="paymentFilters.search" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Date de</label>
+                                        <input v-model="paymentFilters.dateFrom" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Date à</label>
+                                        <input v-model="paymentFilters.dateTo" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-end">
+                                    <button @click="resetPaymentFilters" class="mr-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-md text-sm">
+                                        Réinitialiser
+                                    </button>
+                                    <button @click="filterPayments" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm">
+                                        Filtrer
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Payments Table -->
+                            <div class="bg-white rounded-lg shadow overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Copropriétaire</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="payment in filteredPayments" :key="payment.id">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(payment.date) }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">{{ payment.owner }}</div>
+                                                    <div class="text-sm text-gray-500">{{ payment.unit }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ payment.description }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">{{ formatCurrency(payment.amount) }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span :class="{'bg-green-100 text-green-800': payment.status === 'paid', 'bg-yellow-100 text-yellow-800': payment.status === 'pending', 'bg-red-100 text-red-800': payment.status === 'overdue'}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                                                        {{ payment.status === 'paid' ? 'Payé' : payment.status === 'pending' ? 'En attente' : 'En retard' }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button @click="viewPaymentDetails(payment)" class="text-blue-600 hover:text-blue-900 mr-3"><i class="fas fa-eye"></i></button>
+                                                    <button @click="editPayment(payment)" class="text-yellow-600 hover:text-yellow-900 mr-3"><i class="fas fa-edit"></i></button>
+                                                    <button @click="confirmDeletePayment(payment)" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+                                    <div class="flex-1 flex justify-between sm:hidden">
+                                        <button @click="currentPaymentPage--" :disabled="currentPaymentPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            Précédent
+                                        </button>
+                                        <button @click="currentPaymentPage++" :disabled="currentPaymentPage * paymentsPerPage >= payments.length" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            Suivant
+                                        </button>
+                                    </div>
+                                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-700">
+                                                Affichage de <span class="font-medium">{{ (currentPaymentPage - 1) * paymentsPerPage + 1 }}</span> à <span class="font-medium">{{ Math.min(currentPaymentPage * paymentsPerPage, payments.length) }}</span> de <span class="font-medium">{{ payments.length }}</span> résultats
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                                <button @click="currentPaymentPage--" :disabled="currentPaymentPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                    <span class="sr-only">Précédent</span>
+                                                    <i class="fas fa-chevron-left"></i>
+                                                </button>
+                                                <button v-for="page in totalPaymentPages" :key="page" @click="currentPaymentPage = page" :class="{'bg-blue-50 border-blue-500 text-blue-600 z-10': currentPaymentPage === page, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentPaymentPage !== page}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                                    {{ page }}
+                                                </button>
+                                                <button @click="currentPaymentPage++" :disabled="currentPaymentPage === totalPaymentPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                    <span class="sr-only">Suivant</span>
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </button>
+                                            </nav>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expenses View -->
+                        <div v-else-if="currentView === 'expenses'" key="expenses">
+                            <div class="flex justify-between items-center mb-6">
+                                <h1 class="text-2xl font-bold text-gray-900">Gestion des dépenses</h1>
+                                <button @click="showExpenseModal = true" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-plus mr-2"></i> Nouvelle dépense
+                                </button>
+                            </div>
+
+                            <!-- Filters -->
+                            <div class="bg-white rounded-lg shadow p-4 mb-6">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
+                                        <input v-model="expenseFilters.search" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                                        <select v-model="expenseFilters.category" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                            <option value="">Toutes</option>
+                                            <option v-for="category in expenseCategories" :value="category">{{ category }}</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Date de</label>
+                                        <input v-model="expenseFilters.dateFrom" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Date à</label>
+                                        <input v-model="expenseFilters.dateTo" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-end">
+                                    <button @click="resetExpenseFilters" class="mr-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-md text-sm">
+                                        Réinitialiser
+                                    </button>
+                                    <button @click="filterExpenses" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm">
+                                        Filtrer
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Expenses Table -->
+                            <div class="bg-white rounded-lg shadow overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="expense in filteredExpenses" :key="expense.id">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(expense.date) }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">{{ expense.supplier }}</div>
+                                                    <div class="text-sm text-gray-500">{{ expense.invoiceNumber }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ expense.category }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">{{ formatCurrency(expense.amount) }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span :class="{'bg-green-100 text-green-800': expense.status === 'paid', 'bg-yellow-100 text-yellow-800': expense.status === 'pending', 'bg-red-100 text-red-800': expense.status === 'overdue'}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                                                        {{ expense.status === 'paid' ? 'Payé' : expense.status === 'pending' ? 'En attente' : 'En retard' }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button @click="viewExpenseDetails(expense)" class="text-blue-600 hover:text-blue-900 mr-3"><i class="fas fa-eye"></i></button>
+                                                    <button @click="editExpense(expense)" class="text-yellow-600 hover:text-yellow-900 mr-3"><i class="fas fa-edit"></i></button>
+                                                    <button @click="confirmDeleteExpense(expense)" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+                                    <div class="flex-1 flex justify-between sm:hidden">
+                                        <button @click="currentExpensePage--" :disabled="currentExpensePage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            Précédent
+                                        </button>
+                                        <button @click="currentExpensePage++" :disabled="currentExpensePage * expensesPerPage >= expenses.length" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            Suivant
+                                        </button>
+                                    </div>
+                                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-700">
+                                                Affichage de <span class="font-medium">{{ (currentExpensePage - 1) * expensesPerPage + 1 }}</span> à <span class="font-medium">{{ Math.min(currentExpensePage * expensesPerPage, expenses.length) }}</span> de <span class="font-medium">{{ expenses.length }}</span> résultats
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                                <button @click="currentExpensePage--" :disabled="currentExpensePage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                    <span class="sr-only">Précédent</span>
+                                                    <i class="fas fa-chevron-left"></i>
+                                                </button>
+                                                <button v-for="page in totalExpensePages" :key="page" @click="currentExpensePage = page" :class="{'bg-blue-50 border-blue-500 text-blue-600 z-10': currentExpensePage === page, 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentExpensePage !== page}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                                    {{ page }}
+                                                </button>
+                                                <button @click="currentExpensePage++" :disabled="currentExpensePage === totalExpensePages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                    <span class="sr-only">Suivant</span>
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </button>
+                                            </nav>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Owners View -->
+                        <div v-else-if="currentView === 'owners'" key="owners">
+                            <div class="flex justify-between items-center mb-6">
+                                <h1 class="text-2xl font-bold text-gray-900">Gestion des copropriétaires</h1>
+                                <button @click="showOwnerModal = true" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-plus mr-2"></i> Nouveau copropriétaire
+                                </button>
+                            </div>
+
+                            <!-- Owners Table -->
+                            <div class="bg-white rounded-lg shadow overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Téléphone</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lots</th>
+                                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="owner in owners" :key="owner.id">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <div class="flex-shrink-0 h-10 w-10">
+                                                            <img class="h-10 w-10 rounded-full" :src="owner.avatar" alt="">
+                                                        </div>
+                                                        <div class="ml-4">
+                                                            <div class="text-sm font-medium text-gray-900">{{ owner.name }}</div>
+                                                            <div class="text-sm text-gray-500">{{ owner.address }}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ owner.email }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ owner.phone }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">{{ owner.units.length }} lot(s)</div>
+                                                    <div class="text-sm text-gray-500">{{ owner.units.join(', ') }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button @click="viewOwnerDetails(owner)" class="text-blue-600 hover:text-blue-900 mr-3"><i class="fas fa-eye"></i></button>
+                                                    <button @click="editOwner(owner)" class="text-yellow-600 hover:text-yellow-900 mr-3"><i class="fas fa-edit"></i></button>
+                                                    <button @click="confirmDeleteOwner(owner)" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reports View -->
+                        <div v-else-if="currentView === 'reports'" key="reports">
+                            <h1 class="text-2xl font-bold text-gray-900 mb-6">Rapports financiers</h1>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div class="bg-white rounded-lg shadow p-6">
+                                    <h3 class="text-lg font-medium text-gray-900 mb-4">Rapport des charges</h3>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Période</label>
+                                        <select v-model="reportPeriod" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                            <option value="month">Mois en cours</option>
+                                            <option value="quarter">Trimestre en cours</option>
+                                            <option value="year">Année en cours</option>
+                                            <option value="custom">Période personnalisée</option>
+                                        </select>
+                                    </div>
+                                    <div v-if="reportPeriod === 'custom'" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">De</label>
+                                            <input v-model="customReportStart" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">À</label>
+                                            <input v-model="customReportEnd" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        </div>
+                                    </div>
+                                    <button @click="generateChargesReport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center w-full">
+                                        <i class="fas fa-file-pdf mr-2"></i> Générer le rapport
+                                    </button>
+                                </div>
+                                
+                                <div class="bg-white rounded-lg shadow p-6">
+                                    <h3 class="text-lg font-medium text-gray-900 mb-4">Rapport des copropriétaires</h3>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Copropriétaire</label>
+                                        <select v-model="selectedOwnerForReport" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                            <option value="">Tous les copropriétaires</option>
+                                            <option v-for="owner in owners" :value="owner.id">{{ owner.name }}</option>
+                                        </select>
+                                    </div>
+                                    <button @click="generateOwnerReport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center w-full">
+                                        <i class="fas fa-file-pdf mr-2"></i> Générer le rapport
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Historique des rapports</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Période</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Généré le</th>
+                                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="report in reports" :key="report.id">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ report.type }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ report.period }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(report.generatedAt) }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button @click="downloadReport(report)" class="text-blue-600 hover:text-blue-900 mr-3"><i class="fas fa-download"></i> Télécharger</button>
+                                                    <button @click="deleteReport(report)" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i> Supprimer</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings View -->
+                        <div v-else-if="currentView === 'settings'" key="settings">
+                            <h1 class="text-2xl font-bold text-gray-900 mb-6">Paramètres</h1>
+                            
+                            <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+                                <div class="px-6 py-4 border-b border-gray-200">
+                                    <h3 class="text-lg font-medium text-gray-900">Informations de la copropriété</h3>
+                                </div>
+                                <div class="p-6">
+                                    <form @submit.prevent="savePropertySettings">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Nom de la copropriété</label>
+                                                <input v-model="propertySettings.name" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+                                                <input v-model="propertySettings.address" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de lots</label>
+                                                <input v-model="propertySettings.unitsCount" type="number" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Année de construction</label>
+                                                <input v-model="propertySettings.constructionYear" type="number" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                                                Enregistrer les modifications
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+                                <div class="px-6 py-4 border-b border-gray-200">
+                                    <h3 class="text-lg font-medium text-gray-900">Paramètres financiers</h3>
+                                </div>
+                                <div class="p-6">
+                                    <form @submit.prevent="saveFinancialSettings">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Devise</label>
+                                                <select v-model="financialSettings.currency" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                                    <option value="EUR">Euro (€)</option>
+                                                    <option value="USD">Dollar ($)</option>
+                                                    <option value="XOF">Franc CFA (FCFA)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Exercice fiscal</label>
+                                                <select v-model="financialSettings.fiscalYear" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                                    <option value="calendar">Année civile (Jan-Dec)</option>
+                                                    <option value="july-june">Juillet-Juin</option>
+                                                    <option value="april-march">Avril-Mars</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Taux de TVA par défaut</label>
+                                                <div class="relative rounded-md shadow-sm">
+                                                    <input v-model="financialSettings.defaultVatRate" type="number" step="0.1" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pr-12">
+                                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                        <span class="text-gray-500 sm:text-sm">%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Banque principale</label>
+                                                <input v-model="financialSettings.mainBank" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                                                Enregistrer les modifications
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow overflow-hidden">
+                                <div class="px-6 py-4 border-b border-gray-200">
+                                    <h3 class="text-lg font-medium text-gray-900">Catégories de dépenses</h3>
+                                </div>
+                                <div class="p-6">
+                                    <div class="mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <input v-model="newCategory" type="text" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="Nouvelle catégorie">
+                                            <button @click="addCategory" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm">
+                                                Ajouter
+                                            </button>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                            <div v-for="(category, index) in expenseCategories" :key="index" class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
+                                                <span>{{ category }}</span>
+                                                <button @click="removeCategory(index)" class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div v-if="showPaymentModal" class="fixed inset-0 overflow-y-auto z-50">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    {{ editingPayment ? 'Modifier un paiement' : 'Nouveau paiement' }}
+                                </h3>
+                                <form @submit.prevent="savePayment">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Copropriétaire</label>
+                                            <select v-model="currentPayment.ownerId" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                                <option value="">Sélectionner un copropriétaire</option>
+                                                <option v-for="owner in owners" :value="owner.id">{{ owner.name }}</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Lot concerné</label>
+                                            <select v-model="currentPayment.unit" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                                <option value="">Sélectionner un lot</option>
+                                                <option v-for="unit in getOwnerUnits(currentPayment.ownerId)" :value="unit">{{ unit }}</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                            <input v-model="currentPayment.date" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Montant</label>
+                                            <input v-model="currentPayment.amount" type="number" step="0.01" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Type de paiement</label>
+                                            <select v-model="currentPayment.type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                                <option value="charge">Charge</option>
+                                                <option value="provision">Provision</option>
+                                                <option value="advance">Acompte</option>
+                                                <option value="other">Autre</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Méthode de paiement</label>
+                                            <select v-model="currentPayment.method" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                                <option value="cash">Espèces</option>
+                                                <option value="check">Chèque</option>
+                                                <option value="transfer">Virement</option>
+                                                <option value="card">Carte bancaire</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <textarea v-model="currentPayment.description" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                            {{ editingPayment ? 'Mettre à jour' : 'Enregistrer' }}
+                                        </button>
+                                        <button @click="showPaymentModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expense Modal -->
+        <div v-if="showExpenseModal" class="fixed inset-0 overflow-y-auto z-50">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    {{ editingExpense ? 'Modifier une dépense' : 'Nouvelle dépense' }}
+                                </h3>
+                                <form @submit.prevent="saveExpense">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Fournisseur</label>
+                                            <input v-model="currentExpense.supplier" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Numéro de facture</label>
+                                            <input v-model="currentExpense.invoiceNumber" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                            <input v-model="currentExpense.date" type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Montant</label>
+                                            <input v-model="currentExpense.amount" type="number" step="0.01" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                                            <select v-model="currentExpense.category" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                                <option value="">Sélectionner une catégorie</option>
+                                                <option v-for="category in expenseCategories" :value="category">{{ category }}</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                                            <select v-model="currentExpense.status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                                <option value="pending">En attente</option>
+                                                <option value="paid">Payé</option>
+                                                <option value="overdue">En retard</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <textarea v-model="currentExpense.description" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                            {{ editingExpense ? 'Mettre à jour' : 'Enregistrer' }}
+                                        </button>
+                                        <button @click="showExpenseModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Owner Modal -->
+        <div v-if="showOwnerModal" class="fixed inset-0 overflow-y-auto z-50">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    {{ editingOwner ? 'Modifier un copropriétaire' : 'Nouveau copropriétaire' }}
+                                </h3>
+                                <form @submit.prevent="saveOwner">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                                            <input v-model="currentOwner.name" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                            <input v-model="currentOwner.email" type="email" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                                            <input v-model="currentOwner.phone" type="tel" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+                                            <input v-model="currentOwner.address" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Lots (séparés par des virgules)</label>
+                                        <input v-model="currentOwner.unitsInput" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="Ex: A1, B2, C3">
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                            {{ editingOwner ? 'Mettre à jour' : 'Enregistrer' }}
+                                        </button>
+                                        <button @click="showOwnerModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div v-if="showDeleteModal" class="fixed inset-0 overflow-y-auto z-50">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <i class="fas fa-exclamation-triangle text-red-600"></i>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    Confirmer la suppression
+                                </h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500">
+                                        Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button @click="confirmDelete" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Supprimer
+                        </button>
+                        <button @click="showDeleteModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // State
+                const currentView = ref('dashboard');
+                const mobileMenuOpen = ref(false);
+                const showPaymentModal = ref(false);
+                const showExpenseModal = ref(false);
+                const showOwnerModal = ref(false);
+                const showDeleteModal = ref(false);
+                const editingPayment = ref(false);
+                const editingExpense = ref(false);
+                const editingOwner = ref(false);
+                const itemToDelete = ref(null);
+                const deleteType = ref('');
+                const newCategory = ref('');
+                const reportPeriod = ref('month');
+                const customReportStart = ref('');
+                const customReportEnd = ref('');
+                const selectedOwnerForReport = ref('');
+                
+                // Data
+                const stats = ref({
+                    owners: 24,
+                    units: 48,
+                    monthlyIncome: 12500,
+                    monthlyExpenses: 8500
+                });
+                
+                const notifications = ref([
+                    { id: 1, message: 'Nouveau paiement reçu', date: '2023-06-15', read: false },
+                    { id: 2, message: 'Facture à payer dans 3 jours', date: '2023-06-14', read: false }
+                ]);
+                
+                const recentPayments = ref([
+                    { id: 1, owner: 'Jean Dupont', unit: 'A1', description: 'Charges juin 2023', amount: 350, date: '2023-06-15', status: 'paid' },
+                    { id: 2, owner: 'Marie Martin', unit: 'B2', description: 'Provision travaux', amount: 500, date: '2023-06-14', status: 'paid' },
+                    { id: 3, owner: 'Pierre Durand', unit: 'C3', description: 'Charges juin 2023', amount: 350, date: '2023-06-10', status: 'paid' }
+                ]);
+                
+                const recentExpenses = ref([
+                    { id: 1, supplier: 'EDF', invoiceNumber: 'FAC-2023-001', category: 'Électricité', amount: 1200, date: '2023-06-10', status: 'paid' },
+                    { id: 2, supplier: 'Propreté Ville', invoiceNumber: 'FAC-2023-002', category: 'Nettoyage', amount: 850, date: '2023-06-05', status: 'paid' },
+                    { id: 3, supplier: 'Gardiennage Securitas', invoiceNumber: 'FAC-2023-003', category: 'Sécurité', amount: 1500, date: '2023-06-01', status: 'pending' }
+                ]);
+                
+                const payments = ref([
+                    { id: 1, ownerId: 1, owner: 'Jean Dupont', unit: 'A1', description: 'Charges juin 2023', amount: 350, date: '2023-06-15', type: 'charge', method: 'transfer', status: 'paid' },
+                    { id: 2, ownerId: 2, owner: 'Marie Martin', unit: 'B2', description: 'Provision travaux', amount: 500, date: '2023-06-14', type: 'provision', method: 'check', status: 'paid' },
+                    { id: 3, ownerId: 3, owner: 'Pierre Durand', unit: 'C3', description: 'Charges juin 2023', amount: 350, date: '2023-06-10', type: 'charge', method: 'transfer', status: 'paid' },
+                    { id: 4, ownerId: 4, owner: 'Sophie Lambert', unit: 'D4', description: 'Charges juin 2023', amount: 350, date: '2023-06-08', type: 'charge', method: 'cash', status: 'paid' },
+                    { id: 5, ownerId: 5, owner: 'Thomas Moreau', unit: 'E5', description: 'Acompte charges', amount: 200, date: '2023-06-05', type: 'advance', method: 'transfer', status: 'paid' },
+                    { id: 6, ownerId: 6, owner: 'Lucie Petit', unit: 'F6', description: 'Charges mai 2023', amount: 350, date: '2023-05-30', type: 'charge', method: 'check', status: 'paid' },
+                    { id: 7, ownerId: 7, owner: 'Nicolas Bernard', unit: 'G7', description: 'Charges juin 2023', amount: 350, date: '2023-06-12', type: 'charge', method: 'transfer', status: 'paid' },
+                    { id: 8, ownerId: 8, owner: 'Élodie Roux', unit: 'H8', description: 'Provision ascenseur', amount: 300, date: '2023-06-11', type: 'provision', method: 'check', status: 'paid' },
+                    { id: 9, ownerId: 1, owner: 'Jean Dupont', unit: 'A1', description: 'Charges mai 2023', amount: 350, date: '2023-05-15', type: 'charge', method: 'transfer', status: 'paid' },
+                    { id: 10, ownerId: 2, owner: 'Marie Martin', unit: 'B2', description: 'Charges avril 2023', amount: 350, date: '2023-04-14', type: 'charge', method: 'check', status: 'paid' }
+                ]);
+                
+                const expenses = ref([
+                    { id: 1, supplier: 'EDF', invoiceNumber: 'FAC-2023
+</body>
+</html>

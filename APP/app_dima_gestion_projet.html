@@ -1,0 +1,458 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectFlow - Collaborative Project Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles that can't be done with Tailwind */
+        .kanban-column {
+            min-height: 500px;
+        }
+        .task-card {
+            transition: all 0.3s ease;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .avatar-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white shadow-md">
+            <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold flex items-center">
+                        <i class="fas fa-project-diagram mr-2"></i>
+                        ProjectFlow
+                    </h1>
+                    <nav class="hidden md:flex space-x-6">
+                        <a href="#" class="hover:bg-indigo-500 px-3 py-1 rounded transition">Dashboard</a>
+                        <a href="#" class="hover:bg-indigo-500 px-3 py-1 rounded transition">Projects</a>
+                        <a href="#" class="hover:bg-indigo-500 px-3 py-1 rounded transition">Teams</a>
+                        <a href="#" class="hover:bg-indigo-500 px-3 py-1 rounded transition">Calendar</a>
+                    </nav>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Search..." class="bg-indigo-500 text-white placeholder-indigo-200 rounded-full px-4 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-indigo-200"></i>
+                    </div>
+                    <button class="relative p-1 rounded-full hover:bg-indigo-500">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute top-0 right-0 bg-red-500 text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </button>
+                    <div class="flex items-center space-x-2 cursor-pointer">
+                        <div class="avatar-initials bg-purple-500 rounded-full h-8 w-8">JD</div>
+                        <span class="hidden md:inline">John Doe</span>
+                        <i class="fas fa-chevron-down text-sm hidden md:inline"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-6">
+            <!-- Dashboard Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Website Redesign Project</h2>
+                    <p class="text-gray-600">Track and manage all tasks for the website redesign</p>
+                </div>
+                <div class="flex space-x-3 mt-4 md:mt-0">
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-plus mr-2"></i> New Task
+                    </button>
+                    <button class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-users mr-2"></i> Invite
+                    </button>
+                    <div class="relative">
+                        <button class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Tabs -->
+            <div class="flex border-b border-gray-200 mb-6">
+                <button class="px-4 py-2 font-medium text-indigo-600 border-b-2 border-indigo-600">Kanban</button>
+                <button class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700">List</button>
+                <button class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700">Calendar</button>
+                <button class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700">Timeline</button>
+            </div>
+
+            <!-- Board Controls -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                <div class="flex items-center space-x-3 mb-3 md:mb-0">
+                    <div class="relative">
+                        <select class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option>All Members</option>
+                            <option>John Doe</option>
+                            <option>Jane Smith</option>
+                            <option>Mike Johnson</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+                    <div class="relative">
+                        <select class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option>All Priorities</option>
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-lg flex items-center">
+                        <i class="fas fa-filter mr-2"></i> Filter
+                    </button>
+                    <button class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-lg flex items-center">
+                        <i class="fas fa-sort mr-2"></i> Sort
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kanban Board -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Todo Column -->
+                <div class="bg-gray-100 rounded-lg p-4 kanban-column">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-gray-700">To Do</h3>
+                        <span class="bg-gray-200 text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">5</span>
+                    </div>
+                    <div class="space-y-3">
+                        <!-- Task Card -->
+                        <div class="bg-white rounded-lg shadow-sm p-4 task-card cursor-move">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-800">Design Homepage Mockup</h4>
+                                <div class="flex space-x-1">
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Medium</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Create initial design concepts for the homepage layout.</p>
+                            <div class="flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="avatar-initials bg-blue-500 rounded-full h-6 w-6 text-xs">JD</div>
+                                    <div class="avatar-initials bg-green-500 rounded-full h-6 w-6 text-xs">JS</div>
+                                </div>
+                                <span class="text-xs text-gray-500">Due: May 15</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Card -->
+                        <div class="bg-white rounded-lg shadow-sm p-4 task-card cursor-move">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-800">Gather Client Requirements</h4>
+                                <div class="flex space-x-1">
+                                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">High</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Schedule meeting with client to finalize requirements.</p>
+                            <div class="flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="avatar-initials bg-purple-500 rounded-full h-6 w-6 text-xs">JD</div>
+                                </div>
+                                <span class="text-xs text-gray-500">Due: May 10</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full text-gray-500 hover:text-indigo-600 hover:bg-gray-200 py-2 rounded-lg transition flex items-center justify-center">
+                        <i class="fas fa-plus mr-2"></i> Add Task
+                    </button>
+                </div>
+
+                <!-- In Progress Column -->
+                <div class="bg-gray-100 rounded-lg p-4 kanban-column">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-gray-700">In Progress</h3>
+                        <span class="bg-gray-200 text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">3</span>
+                    </div>
+                    <div class="space-y-3">
+                        <!-- Task Card -->
+                        <div class="bg-white rounded-lg shadow-sm p-4 task-card cursor-move">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-800">Develop Header Component</h4>
+                                <div class="flex space-x-1">
+                                    <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">High</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Implement responsive header with navigation menu.</p>
+                            <div class="flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="avatar-initials bg-green-500 rounded-full h-6 w-6 text-xs">MJ</div>
+                                </div>
+                                <span class="text-xs text-gray-500">Due: May 12</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Card -->
+                        <div class="bg-white rounded-lg shadow-sm p-4 task-card cursor-move">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-800">Create Style Guide</h4>
+                                <div class="flex space-x-1">
+                                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Low</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Document color palette, typography, and UI components.</p>
+                            <div class="flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="avatar-initials bg-blue-500 rounded-full h-6 w-6 text-xs">JD</div>
+                                    <div class="avatar-initials bg-pink-500 rounded-full h-6 w-6 text-xs">AS</div>
+                                </div>
+                                <span class="text-xs text-gray-500">Due: May 14</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full text-gray-500 hover:text-indigo-600 hover:bg-gray-200 py-2 rounded-lg transition flex items-center justify-center">
+                        <i class="fas fa-plus mr-2"></i> Add Task
+                    </button>
+                </div>
+
+                <!-- Review Column -->
+                <div class="bg-gray-100 rounded-lg p-4 kanban-column">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-gray-700">Review</h3>
+                        <span class="bg-gray-200 text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">2</span>
+                    </div>
+                    <div class="space-y-3">
+                        <!-- Task Card -->
+                        <div class="bg-white rounded-lg shadow-sm p-4 task-card cursor-move">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-800">Test Contact Form</h4>
+                                <div class="flex space-x-1">
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Medium</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Verify form submission and validation works correctly.</p>
+                            <div class="flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="avatar-initials bg-orange-500 rounded-full h-6 w-6 text-xs">TS</div>
+                                </div>
+                                <span class="text-xs text-gray-500">Due: May 18</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full text-gray-500 hover:text-indigo-600 hover:bg-gray-200 py-2 rounded-lg transition flex items-center justify-center">
+                        <i class="fas fa-plus mr-2"></i> Add Task
+                    </button>
+                </div>
+
+                <!-- Done Column -->
+                <div class="bg-gray-100 rounded-lg p-4 kanban-column">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-gray-700">Done</h3>
+                        <span class="bg-gray-200 text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">4</span>
+                    </div>
+                    <div class="space-y-3">
+                        <!-- Task Card -->
+                        <div class="bg-white rounded-lg shadow-sm p-4 task-card cursor-move opacity-70">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-800">Project Kickoff Meeting</h4>
+                                <div class="flex space-x-1">
+                                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Low</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Hold initial meeting with all stakeholders.</p>
+                            <div class="flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="avatar-initials bg-purple-500 rounded-full h-6 w-6 text-xs">JD</div>
+                                    <div class="avatar-initials bg-green-500 rounded-full h-6 w-6 text-xs">JS</div>
+                                    <div class="avatar-initials bg-red-500 rounded-full h-6 w-6 text-xs">MJ</div>
+                                </div>
+                                <span class="text-xs text-gray-500">Completed: May 5</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Card -->
+                        <div class="bg-white rounded-lg shadow-sm p-4 task-card cursor-move opacity-70">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-gray-800">Set Up Development Environment</h4>
+                                <div class="flex space-x-1">
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Medium</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Install all required tools and dependencies.</p>
+                            <div class="flex justify-between items-center">
+                                <div class="flex -space-x-2">
+                                    <div class="avatar-initials bg-red-500 rounded-full h-6 w-6 text-xs">MJ</div>
+                                </div>
+                                <span class="text-xs text-gray-500">Completed: May 7</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full text-gray-500 hover:text-indigo-600 hover:bg-gray-200 py-2 rounded-lg transition flex items-center justify-center">
+                        <i class="fas fa-plus mr-2"></i> Add Task
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Task Modal (hidden by default) -->
+        <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Create New Task</h3>
+                        <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <form>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2" for="taskTitle">Task Title</label>
+                            <input type="text" id="taskTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter task title">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2" for="taskDescription">Description</label>
+                            <textarea id="taskDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter task description"></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2" for="taskStatus">Status</label>
+                                <select id="taskStatus" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option>To Do</option>
+                                    <option>In Progress</option>
+                                    <option>Review</option>
+                                    <option>Done</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2" for="taskPriority">Priority</label>
+                                <select id="taskPriority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option>Low</option>
+                                    <option selected>Medium</option>
+                                    <option>High</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2" for="taskDueDate">Due Date</label>
+                                <input type="date" id="taskDueDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2" for="taskAssignee">Assignee</label>
+                                <select id="taskAssignee" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option>John Doe</option>
+                                    <option>Jane Smith</option>
+                                    <option>Mike Johnson</option>
+                                    <option>Alex Brown</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Labels</label>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full cursor-pointer">Design</span>
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full cursor-pointer">Development</span>
+                                <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full cursor-pointer">Research</span>
+                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full cursor-pointer">Testing</span>
+                                <button class="text-gray-500 hover:text-indigo-600">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Create Task</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple JavaScript for modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Modal toggle
+            const modal = document.getElementById('taskModal');
+            const newTaskButtons = document.querySelectorAll('button:has(i.fa-plus)');
+            const closeModal = document.getElementById('closeModal');
+            
+            newTaskButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    modal.classList.remove('hidden');
+                });
+            });
+            
+            closeModal.addEventListener('click', function() {
+                modal.classList.add('hidden');
+            });
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+            
+            // Simple drag and drop simulation
+            const taskCards = document.querySelectorAll('.task-card');
+            
+            taskCards.forEach(card => {
+                card.setAttribute('draggable', 'true');
+                
+                card.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', card.id);
+                    setTimeout(() => {
+                        card.classList.add('opacity-0');
+                    }, 0);
+                });
+                
+                card.addEventListener('dragend', function() {
+                    card.classList.remove('opacity-0');
+                });
+            });
+            
+            const columns = document.querySelectorAll('.kanban-column');
+            
+            columns.forEach(column => {
+                column.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    column.classList.add('bg-gray-200');
+                });
+                
+                column.addEventListener('dragleave', function() {
+                    column.classList.remove('bg-gray-200');
+                });
+                
+                column.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    column.classList.remove('bg-gray-200');
+                    const taskId = e.dataTransfer.getData('text/plain');
+                    const task = document.getElementById(taskId);
+                    const taskList = column.querySelector('.space-y-3');
+                    
+                    if (taskList) {
+                        taskList.appendChild(task);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

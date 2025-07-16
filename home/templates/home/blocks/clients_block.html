@@ -1,0 +1,68 @@
+
+{% load wagtailimages_tags %}
+
+<section id="clients" class="py-5">
+  <div class="container">
+    <h2 class="text-center mb-5 section-title">{{ self.heading }}</h2>
+
+    {% if self.enable_carousel and self.clients|length > 1 %}
+    <!-- Carousel -->
+    <div id="clientLogosCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+
+        {% for client in self.clients %}
+          {% if forloop.first or forloop.counter0|divisibleby:6 %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <div class="row justify-content-center align-items-center">
+          {% endif %}
+
+                <div class="col-lg-2 col-md-3 col-4 text-center p-3">
+                  {% image client.logo fill-200x100 class="img-fluid client-logo" alt=client.alt_text loading="lazy" %}
+                </div>
+
+          {% if forloop.counter|divisibleby:6 or forloop.last %}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+
+      </div>
+
+      <button class="carousel-control-prev" type="button" data-bs-target="#clientLogosCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" style="filter: invert(1) grayscale(100);"></span>
+        <span class="visually-hidden">Précédent</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#clientLogosCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" style="filter: invert(1) grayscale(100);"></span>
+        <span class="visually-hidden">Suivant</span>
+      </button>
+    </div>
+    {% else %}
+    <!-- Static grid -->
+    <div class="row justify-content-center align-items-center">
+      {% for client in self.clients %}
+        <div class="col-lg-2 col-md-3 col-4 text-center p-3">
+          {% image client.logo fill-200x100 class="img-fluid client-logo" alt=client.alt_text loading="lazy" %}
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if self.testimonial %}
+    <!-- Testimonial Section -->
+    <div class="row mt-5 justify-content-center">
+      <div class="col-lg-8">
+        <figure class="text-center testimonial">
+          <blockquote class="blockquote">
+            <p>"{{ self.testimonial.quote }}"</p>
+          </blockquote>
+          <figcaption class="blockquote-footer">
+            {{ self.testimonial.author }}{% if self.testimonial.role %} <cite title="Client Role">{{ self.testimonial.role }}</cite>{% endif %}
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>

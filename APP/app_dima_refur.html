@@ -1,0 +1,623 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Dima Refur - Gestion de PC reconditionnés</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles that can't be done with Tailwind */
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+        .sidebar.collapsed .logo-icon {
+            margin-right: 0;
+        }
+        .main-content {
+            transition: all 0.3s ease;
+        }
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+        .pc-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="sidebar bg-indigo-800 text-white w-64 flex flex-col">
+            <div class="p-4 flex items-center border-b border-indigo-700">
+                <div class="logo-icon mr-3 text-2xl">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <h1 class="logo-text text-xl font-bold">PC Dima Refur</h1>
+                <button class="ml-auto text-white focus:outline-none" id="toggleSidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="flex-1 overflow-y-auto">
+                <div class="p-4">
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-2">Menu Principal</h2>
+                    <ul>
+                        <li class="mb-1">
+                            <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 active-nav">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span class="nav-text">Tableau de bord</span>
+                            </a>
+                        </li>
+                        <li class="mb-1">
+                            <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-laptop mr-3"></i>
+                                <span class="nav-text">PC Reconditionnés</span>
+                            </a>
+                        </li>
+                        <li class="mb-1">
+                            <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-warehouse mr-3"></i>
+                                <span class="nav-text">Gestion des stocks</span>
+                            </a>
+                        </li>
+                        <li class="mb-1">
+                            <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-tools mr-3"></i>
+                                <span class="nav-text">Opérations</span>
+                            </a>
+                        </li>
+                        <li class="mb-1">
+                            <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-ticket-alt mr-3"></i>
+                                <span class="nav-text">Tickets d'incident</span>
+                            </a>
+                        </li>
+                        <li class="mb-1">
+                            <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-search mr-3"></i>
+                                <span class="nav-text">Recherche</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="p-4 border-t border-indigo-700">
+                    <h2 class="text-xs uppercase text-indigo-400 font-semibold mb-2">Administration</h2>
+                    <ul>
+                        <li class="mb-1">
+                            <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-users mr-3"></i>
+                                <span class="nav-text">Utilisateurs</span>
+                            </a>
+                        </li>
+                        <li class="mb-1">
+                            <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700">
+                                <i class="fas fa-cog mr-3"></i>
+                                <span class="nav-text">Paramètres</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <div class="p-4 border-t border-indigo-700">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center mr-3">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="nav-text">
+                        <p class="text-sm font-medium">Admin User</p>
+                        <p class="text-xs text-indigo-300">admin@example.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-1 overflow-auto">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between p-4">
+                    <div class="flex items-center">
+                        <h2 class="text-xl font-semibold text-gray-800">Tableau de bord</h2>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" placeholder="Rechercher..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <button class="p-2 rounded-full hover:bg-gray-100 relative">
+                            <i class="fas fa-bell text-gray-600"></i>
+                            <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                        </button>
+                        <button class="p-2 rounded-full hover:bg-gray-100">
+                            <i class="fas fa-qrcode text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6 flex items-center">
+                        <div class="p-3 rounded-full bg-indigo-100 text-indigo-600 mr-4">
+                            <i class="fas fa-laptop text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">PC en stock</p>
+                            <h3 class="text-2xl font-bold">124</h3>
+                            <p class="text-green-500 text-xs">+5% depuis hier</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6 flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                            <i class="fas fa-tools text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Opérations en cours</p>
+                            <h3 class="text-2xl font-bold">28</h3>
+                            <p class="text-yellow-500 text-xs">3 en retard</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6 flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
+                            <i class="fas fa-ticket-alt text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Tickets ouverts</p>
+                            <h3 class="text-2xl font-bold">15</h3>
+                            <p class="text-red-500 text-xs">2 critiques</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6 flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">PC prêts</p>
+                            <h3 class="text-2xl font-bold">42</h3>
+                            <p class="text-green-500 text-xs">10 livrés cette semaine</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent PCs and Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Recent PCs -->
+                    <div class="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden">
+                        <div class="p-4 border-b flex justify-between items-center">
+                            <h3 class="font-semibold text-lg">PC récemment ajoutés</h3>
+                            <a href="#" class="text-sm text-indigo-600 hover:underline">Voir tout</a>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modèle</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spécifications</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">État</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#PC-1001</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Dell OptiPlex 7040</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <div class="flex items-center">
+                                                <span class="mr-2">i5-6500, 8GB, 256GB SSD</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Prêt</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <button class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-eye"></i></button>
+                                            <button class="text-yellow-600 hover:text-yellow-900"><i class="fas fa-edit"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#PC-1002</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">HP EliteDesk 800 G2</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <div class="flex items-center">
+                                                <span class="mr-2">i7-6700, 16GB, 512GB SSD</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">En test</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <button class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-eye"></i></button>
+                                            <button class="text-yellow-600 hover:text-yellow-900"><i class="fas fa-edit"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#PC-1003</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Lenovo ThinkCentre M93p</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <div class="flex items-center">
+                                                <span class="mr-2">i5-4570, 8GB, 1TB HDD</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">En réparation</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <button class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-eye"></i></button>
+                                            <button class="text-yellow-600 hover:text-yellow-900"><i class="fas fa-edit"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="p-4 border-b">
+                            <h3 class="font-semibold text-lg">Actions rapides</h3>
+                        </div>
+                        <div class="p-4">
+                            <button class="w-full mb-3 flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <i class="fas fa-plus mr-2"></i> Ajouter un PC
+                            </button>
+                            <button class="w-full mb-3 flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <i class="fas fa-barcode mr-2"></i> Scanner un code
+                            </button>
+                            <button class="w-full mb-3 flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <i class="fas fa-tools mr-2"></i> Nouvelle opération
+                            </button>
+                            <button class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <i class="fas fa-ticket-alt mr-2"></i> Créer un ticket
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PC Cards -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-lg">PC disponibles</h3>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 border rounded text-sm">Tous</button>
+                            <button class="px-3 py-1 border rounded text-sm bg-indigo-100 text-indigo-700">Prêts</button>
+                            <button class="px-3 py-1 border rounded text-sm">En test</button>
+                            <button class="px-3 py-1 border rounded text-sm">En réparation</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <!-- PC Card 1 -->
+                        <div class="pc-card bg-white rounded-lg shadow overflow-hidden transition-transform duration-300">
+                            <div class="p-4 border-b">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold">#PC-1001</h4>
+                                        <p class="text-sm text-gray-600">Dell OptiPlex 7040</p>
+                                    </div>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Prêt</span>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-microchip text-gray-400 mr-2"></i>
+                                    <span class="text-sm">i5-6500, 8GB RAM</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-hdd text-gray-400 mr-2"></i>
+                                    <span class="text-sm">256GB SSD</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-tag text-gray-400 mr-2"></i>
+                                    <span class="text-sm">SN: CN-0KXK1Y-64180</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                    <span class="text-sm">Ajouté: 12/05/2023</span>
+                                </div>
+                            </div>
+                            <div class="px-4 py-3 bg-gray-50 flex justify-between">
+                                <button class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Détails</button>
+                                <div class="flex space-x-2">
+                                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-print"></i></button>
+                                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-ellipsis-v"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PC Card 2 -->
+                        <div class="pc-card bg-white rounded-lg shadow overflow-hidden transition-transform duration-300">
+                            <div class="p-4 border-b">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold">#PC-1002</h4>
+                                        <p class="text-sm text-gray-600">HP EliteDesk 800 G2</p>
+                                    </div>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">En test</span>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-microchip text-gray-400 mr-2"></i>
+                                    <span class="text-sm">i7-6700, 16GB RAM</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-hdd text-gray-400 mr-2"></i>
+                                    <span class="text-sm">512GB SSD</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-tag text-gray-400 mr-2"></i>
+                                    <span class="text-sm">SN: MXL6020K5P</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                    <span class="text-sm">Ajouté: 10/05/2023</span>
+                                </div>
+                            </div>
+                            <div class="px-4 py-3 bg-gray-50 flex justify-between">
+                                <button class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Détails</button>
+                                <div class="flex space-x-2">
+                                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-print"></i></button>
+                                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-ellipsis-v"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PC Card 3 -->
+                        <div class="pc-card bg-white rounded-lg shadow overflow-hidden transition-transform duration-300">
+                            <div class="p-4 border-b">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold">#PC-1003</h4>
+                                        <p class="text-sm text-gray-600">Lenovo ThinkCentre M93p</p>
+                                    </div>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">En réparation</span>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-microchip text-gray-400 mr-2"></i>
+                                    <span class="text-sm">i5-4570, 8GB RAM</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-hdd text-gray-400 mr-2"></i>
+                                    <span class="text-sm">1TB HDD</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-tag text-gray-400 mr-2"></i>
+                                    <span class="text-sm">SN: S4D23456</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                    <span class="text-sm">Ajouté: 08/05/2023</span>
+                                </div>
+                            </div>
+                            <div class="px-4 py-3 bg-gray-50 flex justify-between">
+                                <button class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Détails</button>
+                                <div class="flex space-x-2">
+                                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-print"></i></button>
+                                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-ellipsis-v"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PC Card 4 -->
+                        <div class="pc-card bg-white rounded-lg shadow overflow-hidden transition-transform duration-300">
+                            <div class="p-4 border-b">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold">#PC-1004</h4>
+                                        <p class="text-sm text-gray-600">Dell OptiPlex 9020</p>
+                                    </div>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Prêt</span>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-microchip text-gray-400 mr-2"></i>
+                                    <span class="text-sm">i7-4770, 16GB RAM</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-hdd text-gray-400 mr-2"></i>
+                                    <span class="text-sm">512GB SSD</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-tag text-gray-400 mr-2"></i>
+                                    <span class="text-sm">SN: CN-0KXK1Y-64180</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                    <span class="text-sm">Ajouté: 05/05/2023</span>
+                                </div>
+                            </div>
+                            <div class="px-4 py-3 bg-gray-50 flex justify-between">
+                                <button class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Détails</button>
+                                <div class="flex space-x-2">
+                                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-print"></i></button>
+                                    <button class="text-gray-500 hover:text-gray-700"><i class="fas fa-ellipsis-v"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="p-4 border-b">
+                        <h3 class="font-semibold text-lg">Activités récentes</h3>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        <div class="p-4 flex">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">PC #PC-1001 marqué comme prêt</p>
+                                <p class="text-sm text-gray-500">Par Jean Dupont • 2 heures ago</p>
+                            </div>
+                        </div>
+                        <div class="p-4 flex">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Opération de mise à jour RAM sur #PC-1003</p>
+                                <p class="text-sm text-gray-500">Par Marie Martin • 5 heures ago</p>
+                            </div>
+                        </div>
+                        <div class="p-4 flex">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Nouveau PC ajouté #PC-1004</p>
+                                <p class="text-sm text-gray-500">Par Admin • Hier à 14:30</p>
+                            </div>
+                        </div>
+                        <div class="p-4 flex">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                                    <i class="fas fa-ticket-alt"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Ticket créé pour #PC-1002</p>
+                                <p class="text-sm text-gray-500">Par Pierre Lambert • Hier à 11:15</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t text-center">
+                        <a href="#" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Voir toutes les activités</a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal for adding new PC -->
+    <div class="fixed inset-0 overflow-y-auto hidden" id="addPcModal">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-laptop text-indigo-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Ajouter un nouveau PC</h3>
+                            <div class="mt-2">
+                                <form>
+                                    <div class="mb-4">
+                                        <label for="model" class="block text-sm font-medium text-gray-700">Modèle</label>
+                                        <input type="text" id="model" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label for="cpu" class="block text-sm font-medium text-gray-700">Processeur</label>
+                                            <input type="text" id="cpu" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                        </div>
+                                        <div>
+                                            <label for="ram" class="block text-sm font-medium text-gray-700">RAM (GB)</label>
+                                            <input type="number" id="ram" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="storage" class="block text-sm font-medium text-gray-700">Stockage</label>
+                                        <input type="text" id="storage" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="serial" class="block text-sm font-medium text-gray-700">Numéro de série</label>
+                                        <input type="text" id="serial" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">Enregistrer</button>
+                    <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle sidebar
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+
+        // Simulate loading when clicking "Ajouter un PC"
+        document.querySelectorAll('[onclick="showAddPcModal()"]').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('addPcModal').classList.remove('hidden');
+            });
+        });
+
+        // Close modal when clicking cancel
+        document.querySelectorAll('[onclick="hideAddPcModal()"]').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('addPcModal').classList.add('hidden');
+            });
+        });
+
+        // Simulate API calls
+        function fetchPCs() {
+            // This would be replaced with actual Axios call in a real Vue.js app
+            console.log("Fetching PCs from API...");
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve([
+                        { id: 'PC-1001', model: 'Dell OptiPlex 7040', cpu: 'i5-6500', ram: '8GB', storage: '256GB SSD', status: 'ready' },
+                        { id: 'PC-1002', model: 'HP EliteDesk 800 G2', cpu: 'i7-6700', ram: '16GB', storage: '512GB SSD', status: 'testing' },
+                        { id: 'PC-1003', model: 'Lenovo ThinkCentre M93p', cpu: 'i5-4570', ram: '8GB', storage: '1TB HDD', status: 'repair' }
+                    ]);
+                }, 1000);
+            });
+        }
+
+        // Example of how you might initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // In a real Vue.js app, this would be replaced with Vue components and lifecycle hooks
+            fetchPCs().then(pcs => {
+                console.log("PCs loaded:", pcs);
+                // Update UI with loaded PCs
+            });
+        });
+    </script>
+</body>
+</html>

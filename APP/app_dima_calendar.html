@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dima Calendar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .fc .fc-button-primary {
+            background-color: #6366f1;
+            border-color: #6366f1;
+        }
+        .fc .fc-button-primary:hover {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .fc .fc-button-primary:disabled {
+            background-color: #a5b4fc;
+            border-color: #a5b4fc;
+        }
+        .fc-event {
+            cursor: pointer;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        body.modal-active {
+            overflow-x: hidden;
+            overflow-y: visible !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-calendar-alt text-2xl"></i>
+                    <h1 class="text-2xl font-bold">Dima Calendar</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button @click="showAddModal = true" class="bg-white text-indigo-600 px-4 py-2 rounded-lg font-semibold hover:bg-indigo-50 transition">
+                        <i class="fas fa-plus mr-2"></i>Nouvel événement
+                    </button>
+                    <div class="relative">
+                        <button @click="userMenuOpen = !userMenuOpen" class="flex items-center space-x-2 focus:outline-none">
+                            <div class="w-8 h-8 rounded-full bg-indigo-400 flex items-center justify-center">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                        </button>
+                        <div v-if="userMenuOpen" @click.away="userMenuOpen = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50">Profil</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50">Paramètres</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 border-t border-gray-100">Déconnexion</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Calendar View Toggle -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex space-x-2">
+                    <button @click="changeView('day')" :class="{'bg-indigo-100 text-indigo-600': currentView === 'day'}" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">
+                        Jour
+                    </button>
+                    <button @click="changeView('week')" :class="{'bg-indigo-100 text-indigo-600': currentView === 'week'}" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">
+                        Semaine
+                    </button>
+                    <button @click="changeView('month')" :class="{'bg-indigo-100 text-indigo-600': currentView === 'month'}" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">
+                        Mois
+                    </button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button @click="prev" class="p-2 rounded-full hover:bg-gray-200">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2 class="text-xl font-semibold">{{ currentDate }}</h2>
+                    <button @click="next" class="p-2 rounded-full hover:bg-gray-200">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button @click="today" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">
+                        Aujourd'hui
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div id="calendar" class="p-4"></div>
+            </div>
+        </main>
+
+        <!-- Add Event Modal -->
+        <div v-if="showAddModal" class="fixed inset-0 overflow-y-auto z-50">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75" @click="showAddModal = false"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Ajouter un événement</h3>
+                            <button @click="showAddModal = false" class="text-gray-400 hover:text-gray-500">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="title" class="block text-sm font-medium text-gray-700">Titre</label>
+                                <input v-model="newEvent.title" type="text" id="title" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="start" class="block text-sm font-medium text-gray-700">Début</label>
+                                    <input v-model="newEvent.start" type="datetime-local" id="start" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="end" class="block text-sm font-medium text-gray-700">Fin</label>
+                                    <input v-model="newEvent.end" type="datetime-local" id="end" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea v-model="newEvent.description" id="description" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                            </div>
+                            <div>
+                                <label for="color" class="block text-sm font-medium text-gray-700">Couleur</label>
+                                <select v-model="newEvent.color" id="color" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="#3b82f6">Bleu</option>
+                                    <option value="#ef4444">Rouge</option>
+                                    <option value="#10b981">Vert</option>
+                                    <option value="#f59e0b">Jaune</option>
+                                    <option value="#8b5cf6">Violet</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button @click="addEvent" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Ajouter
+                        </button>
+                        <button @click="showAddModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Event Modal -->
+        <div v-if="showEditModal" class="fixed inset-0 overflow-y-auto z-50">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75" @click="showEditModal = false"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Modifier l'événement</h3>
+                            <button @click="showEditModal = false" class="text-gray-400 hover:text-gray-500">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="edit-title" class="block text-sm font-medium text-gray-700">Titre</label>
+                                <input v-model="selectedEvent.title" type="text" id="edit-title" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="edit-start" class="block text-sm font-medium text-gray-700">Début</label>
+                                    <input v-model="selectedEvent.start" type="datetime-local" id="edit-start" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="edit-end" class="block text-sm font-medium text-gray-700">Fin</label>
+                                    <input v-model="selectedEvent.end" type="datetime-local" id="edit-end" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="edit-description" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea v-model="selectedEvent.description" id="edit-description" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                            </div>
+                            <div>
+                                <label for="edit-color" class="block text-sm font-medium text-gray-700">Couleur</label>
+                                <select v-model="selectedEvent.color" id="edit-color" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="#3b82f6">Bleu</option>
+                                    <option value="#ef4444">Rouge</option>
+                                    <option value="#10b981">Vert</option>
+                                    <option value="#f59e0b">Jaune</option>
+                                    <option value="#8b5cf6">Violet</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button @click="updateEvent" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Enregistrer
+                        </button>
+                        <button @click="deleteEvent" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Supprimer
+                        </button>
+                        <button @click="showEditModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock API for demonstration
+        const mockEvents = [
+            {
+                id: 1,
+                title: 'Réunion d\'équipe',
+                start: new Date().toISOString().slice(0, 10) + 'T09:00:00',
+                end: new Date().toISOString().slice(0, 10) + 'T10:30:00',
+                description: 'Réunion hebdomadaire avec toute l\'équipe',
+                color: '#3b82f6'
+            },
+            {
+                id: 2,
+                title: 'Déjeuner avec client',
+                start: new Date().toISOString().slice(0, 10) + 'T12:30:00',
+                end: new Date().toISOString().slice(0, 10) + 'T14:00:00',
+                description: 'Discussion sur le nouveau projet',
+                color: '#10b981'
+            }
+        ];
+
+        const mockApi = {
+            getEvents: () => {
+                return new Promise(resolve => {
+                    setTimeout(() => resolve([...mockEvents]), 500);
+                });
+            },
+            addEvent: (event) => {
+                return new Promise(resolve => {
+                    const newId = mockEvents.length > 0 ? Math.max(...mockEvents.map(e => e.id)) + 1 : 1;
+                    const newEvent = { ...event, id: newId };
+                    mockEvents.push(newEvent);
+                    setTimeout(() => resolve(newEvent), 500);
+                });
+            },
+            updateEvent: (event) => {
+                return new Promise(resolve => {
+                    const index = mockEvents.findIndex(e => e.id === event.id);
+                    if (index !== -1) {
+                        mockEvents[index] = event;
+                    }
+                    setTimeout(() => resolve(event), 500);
+                });
+            },
+            deleteEvent: (id) => {
+                return new Promise(resolve => {
+                    const index = mockEvents.findIndex(e => e.id === id);
+                    if (index !== -1) {
+                        mockEvents.splice(index, 1);
+                    }
+                    setTimeout(() => resolve(), 500);
+                });
+            }
+        };
+
+        new Vue({
+            el: '#app',
+            data: {
+                calendar: null,
+                currentView: 'month',
+                currentDate: '',
+                events: [],
+                showAddModal: false,
+                showEditModal: false,
+                userMenuOpen: false,
+                newEvent: {
+                    title: '',
+                    start: '',
+                    end: '',
+                    description: '',
+                    color: '#3b82f6'
+                },
+                selectedEvent: null
+            },
+            mounted() {
+                this.initCalendar();
+                this.fetchEvents();
+            },
+            methods: {
+                initCalendar() {
+                    const calendarEl = document.getElementById('calendar');
+                    
+                    this.calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: false,
+                        locale: 'fr',
+                        firstDay: 1,
+                        editable: true,
+                        selectable: true,
+                        eventClick: this.handleEventClick,
+                        eventDrop: this.handleEventDrop,
+                        eventResize: this.handleEventResize,
+                        datesSet: this.handleDatesSet,
+                        events: this.events,
+                        eventContent: this.renderEventContent
+                    });
+
+                    this.calendar.render();
+                    this.updateCurrentDate();
+                },
+                renderEventContent(info) {
+                    const eventEl = document.createElement('div');
+                    eventEl.className = 'fc-event-main-frame';
+                    
+                    const timeEl = document.createElement('div');
+                    timeEl.className = 'fc-event-time';
+                    timeEl.textContent = info.timeText;
+                    
+                    const titleEl = document.createElement('div');
+                    titleEl.className = 'fc-event-title';
+                    titleEl.textContent = info.event.title;
+                    
+                    eventEl.appendChild(timeEl);
+                    eventEl.appendChild(titleEl);
+                    
+                    return { domNodes: [eventEl] };
+                },
+                fetchEvents() {
+                    mockApi.getEvents().then(events => {
+                        this.events = events;
+                        this.calendar.refetchEvents();
+                    });
+                },
+                changeView(view) {
+                    this.currentView = view;
+                    this.calendar.changeView(this.getFullCalendarViewName(view));
+                    this.updateCurrentDate();
+                },
+                getFullCalendarViewName(view) {
+                    const viewMap = {
+                        'day': 'timeGridDay',
+                        'week': 'timeGridWeek',
+                        'month': 'dayGridMonth'
+                    };
+                    return viewMap[view];
+                },
+                prev() {
+                    this.calendar.prev();
+                    this.updateCurrentDate();
+                },
+                next() {
+                    this.calendar.next();
+                    this.updateCurrentDate();
+                },
+                today() {
+                    this.calendar.today();
+                    this.updateCurrentDate();
+                },
+                updateCurrentDate() {
+                    const view = this.calendar.view;
+                    const start = view.activeStart;
+                    const end = view.activeEnd;
+                    
+                    if (this.currentView === 'day') {
+                        this.currentDate = start.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                    } else if (this.currentView === 'week') {
+                        const weekStart = start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                        const weekEnd = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+                        this.currentDate = `${weekStart} - ${weekEnd}`;
+                    } else {
+                        this.currentDate = start.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                    }
+                },
+                handleDatesSet() {
+                    this.updateCurrentDate();
+                },
+                handleEventClick(info) {
+                    this.selectedEvent = {
+                        id: info.event.id,
+                        title: info.event.title,
+                        start: this.formatDateTimeForInput(info.event.start),
+                        end: info.event.end ? this.formatDateTimeForInput(info.event.end) : this.formatDateTimeForInput(info.event.start),
+                        description: info.event.extendedProps.description || '',
+                        color: info.event.backgroundColor
+                    };
+                    this.showEditModal = true;
+                },
+                handleEventDrop(info) {
+                    const event = this.events.find(e => e.id === info.event.id);
+                    if (event) {
+                        event.start = info.event.start.toISOString();
+                        if (info.event.end) {
+                            event.end = info.event.end.toISOString();
+                        }
+                        mockApi.updateEvent(event);
+                    }
+                },
+                handleEventResize(info) {
+                    const event = this.events.find(e => e.id === info.event.id);
+                    if (event) {
+                        event.start = info.event.start.toISOString();
+                        event.end = info.event.end.toISOString();
+                        mockApi.updateEvent(event);
+                    }
+                },
+                addEvent() {
+                    if (!this.newEvent.title || !this.newEvent.start) return;
+                    
+                    const event = {
+                        title: this.newEvent.title,
+                        start: this.newEvent.start,
+                        end: this.newEvent.end || this.newEvent.start,
+                        description: this.newEvent.description,
+                        color: this.newEvent.color
+                    };
+                    
+                    mockApi.addEvent(event).then(() => {
+                        this.fetchEvents();
+                        this.showAddModal = false;
+                        this.resetNewEvent();
+                    });
+                },
+                updateEvent() {
+                    if (!this.selectedEvent.title || !this.selectedEvent.start) return;
+                    
+                    const event = {
+                        id: this.selectedEvent.id,
+                        title: this.selectedEvent.title,
+                        start: this.selectedEvent.start,
+                        end: this.selectedEvent.end || this.selectedEvent.start,
+                        description: this.selectedEvent.description,
+                        color: this.selectedEvent.color
+                    };
+                    
+                    mockApi.updateEvent(event).then(() => {
+                        this.fetchEvents();
+                        this.showEditModal = false;
+                    });
+                },
+                deleteEvent() {
+                    if (!this.selectedEvent.id) return;
+                    
+                    mockApi.deleteEvent(this.selectedEvent.id).then(() => {
+                        this.fetchEvents();
+                        this.showEditModal = false;
+                    });
+                },
+                resetNewEvent() {
+                    this.newEvent = {
+                        title: '',
+                        start: '',
+                        end: '',
+                        description: '',
+                        color: '#3b82f6'
+                    };
+                },
+                formatDateTimeForInput(date) {
+                    if (!date) return '';
+                    
+                    const d = new Date(date);
+                    const pad = num => num.toString().padStart(2, '0');
+                    
+                    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

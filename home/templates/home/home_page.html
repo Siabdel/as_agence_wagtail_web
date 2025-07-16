@@ -17,26 +17,40 @@
     {% endif %}
 
     {% if block.block_type == 'services' %}
+
        {% include_block block %}
      
     {% endif %}
     
+    {% if block.block_type == 'clients' %}
+
+       {% include_block block %}
+     
+    {% endif %}
 
     {% if block.block_type == 'projects' %}
-      <section class="projects py-5">
-        <div class="container">
-          <h2 class="mb-4">{{ block.value.title }}</h2>
-          <div class="row g-4">
-            {% for item in block.value.project_items %}
-              <div class="col-md-3">
-                {% image item.image fill-400x300 %}
-                <h4>{{ item.title }}</h4>
-                <p class="text-muted">{{ item.category }}</p>
-              </div>
-            {% endfor %}
+       <section class="container py-5" id="projets">
+    <h2 class="section-title">Nos Réalisations</h2>
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Projet 1" />
+          <div class="card-body">
+            <h5 class="card-title">Boutique e-commerce PME</h5>
+            <p class="card-text">Développement d'une plateforme e-commerce connectée à un ERP.</p>
           </div>
         </div>
-      </section>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=500&q=80" class="card-img-top" alt="Projet 2" />
+          <div class="card-body">
+            <h5 class="card-title">Solution de prise de RDV</h5>
+            <p class="card-text">Mise en place d'atlasRDV pour un cabinet médical.</p>
+          </div>
+        </div>
+      </div>
+    </div>
     
     {% endif %}
 

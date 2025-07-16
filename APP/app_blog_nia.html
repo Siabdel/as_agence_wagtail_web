@@ -1,0 +1,599 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechAI Blog - L'actualité de l'Intelligence Artificielle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+        }
+        .article-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .comment-enter-active, .comment-leave-active {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .comment-enter-from, .comment-leave-to {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark gradient-bg sticky-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="#">
+                    <i class="fas fa-robot me-2"></i>TechAI Blog
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">Accueil</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Articles</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Catégories</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">À propos</a>
+                        </li>
+                    </ul>
+                    <div class="d-flex">
+                        <button v-if="!user" @click="showLogin = true" class="btn btn-outline-light me-2">
+                            <i class="fas fa-sign-in-alt me-1"></i> Connexion
+                        </button>
+                        <div v-else class="dropdown">
+                            <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i> {{ user.name }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-1"></i> Profil</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-bookmark me-1"></i> Signets</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" @click="logout"><i class="fas fa-sign-out-alt me-1"></i> Déconnexion</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="gradient-bg text-white py-5">
+            <div class="container py-4">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <h1 class="display-4 fw-bold mb-3">L'avenir de l'IA commence ici</h1>
+                        <p class="lead mb-4">Découvrez les dernières avancées, analyses et tendances en intelligence artificielle.</p>
+                        <button class="btn btn-light btn-lg pulse">
+                            <i class="fas fa-book-reader me-2"></i> Explorer les articles
+                        </button>
+                    </div>
+                    <div class="col-lg-6 d-none d-lg-block">
+                        <img src="https://via.placeholder.com/600x400/6e8efb/ffffff?text=AI+Future" alt="IA" class="img-fluid rounded shadow">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container my-5">
+            <div class="row">
+                <!-- Articles Section -->
+                <div class="col-lg-8">
+                    <h2 class="mb-4 fw-bold border-bottom pb-2">Derniers articles</h2>
+                    
+                    <!-- Featured Article -->
+                    <div class="card mb-4 article-card border-0 shadow-sm" v-if="featuredArticle">
+                        <img :src="featuredArticle.image" class="card-img-top" :alt="featuredArticle.title">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-primary me-2">{{ featuredArticle.category }}</span>
+                                <small class="text-muted">{{ formatDate(featuredArticle.date) }}</small>
+                            </div>
+                            <h3 class="card-title">{{ featuredArticle.title }}</h3>
+                            <p class="card-text">{{ featuredArticle.excerpt }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a :href="'#article-' + featuredArticle.id" class="btn btn-primary" @click="loadArticle(featuredArticle.id)">
+                                    Lire la suite <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                                <small class="text-muted">{{ featuredArticle.author }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Articles List -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4" v-for="article in articles" :key="article.id">
+                            <div class="card h-100 article-card border-0 shadow-sm">
+                                <img :src="article.image" class="card-img-top" :alt="article.title">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge" :class="'bg-' + getCategoryColor(article.category)">{{ article.category }}</span>
+                                        <small class="text-muted ms-2">{{ formatDate(article.date) }}</small>
+                                    </div>
+                                    <h4 class="card-title h5">{{ article.title }}</h4>
+                                    <p class="card-text text-muted small">{{ article.excerpt }}</p>
+                                </div>
+                                <div class="card-footer bg-transparent border-0">
+                                    <a :href="'#article-' + article.id" class="btn btn-sm btn-outline-primary" @click="loadArticle(article.id)">
+                                        Lire plus
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Article Detail View -->
+                    <div class="article-detail" v-if="currentArticle">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <img :src="currentArticle.image" class="card-img-top" :alt="currentArticle.title">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <span class="badge" :class="'bg-' + getCategoryColor(currentArticle.category)">{{ currentArticle.category }}</span>
+                                    <small class="text-muted ms-2">{{ formatDate(currentArticle.date) }}</small>
+                                </div>
+                                <h2 class="card-title mb-3">{{ currentArticle.title }}</h2>
+                                <div class="d-flex align-items-center mb-4">
+                                    <img src="https://via.placeholder.com/40" class="rounded-circle me-2" :alt="currentArticle.author">
+                                    <div>
+                                        <p class="mb-0 fw-bold">{{ currentArticle.author }}</p>
+                                        <small class="text-muted">Publié le {{ formatDate(currentArticle.date) }}</small>
+                                    </div>
+                                </div>
+                                <div class="article-content" v-html="currentArticle.content"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Comments Section -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h3 class="h5 mb-0">
+                                    <i class="fas fa-comments me-2 text-primary"></i>
+                                    Commentaires ({{ currentArticle.comments.length }})
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <!-- Comment Form -->
+                                <div class="mb-4" v-if="user">
+                                    <form @submit.prevent="addComment">
+                                        <div class="mb-3">
+                                            <textarea class="form-control" rows="3" placeholder="Ajouter un commentaire..." v-model="newComment" required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Poster</button>
+                                    </form>
+                                </div>
+                                <div v-else class="alert alert-info">
+                                    <a href="#" @click="showLogin = true" class="alert-link">Connectez-vous</a> pour laisser un commentaire.
+                                </div>
+                                
+                                <!-- Comments List -->
+                                <transition-group name="comment">
+                                    <div class="media mb-4" v-for="comment in currentArticle.comments" :key="comment.id">
+                                        <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="User">
+                                        <div class="media-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h5 class="mt-0 mb-0">{{ comment.author }}</h5>
+                                                <small class="text-muted">{{ formatDate(comment.date) }}</small>
+                                            </div>
+                                            <p class="mb-0">{{ comment.text }}</p>
+                                        </div>
+                                    </div>
+                                </transition-group>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- About Widget -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <img src="https://via.placeholder.com/100" class="rounded-circle mb-3" alt="About">
+                            <h3 class="h5">À propos de TechAI</h3>
+                            <p class="text-muted small">Nous explorons l'univers de l'intelligence artificielle et son impact sur notre société.</p>
+                            <div class="d-flex justify-content-center">
+                                <a href="#" class="btn btn-sm btn-outline-secondary me-2"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary me-2"><i class="fab fa-linkedin"></i></a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fab fa-github"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Categories Widget -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 mb-0">Catégories</h3>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0" v-for="category in categories" :key="category.name">
+                                    <a href="#" class="text-decoration-none">{{ category.name }}</a>
+                                    <span class="badge rounded-pill" :class="'bg-' + category.color">{{ category.count }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Popular Articles -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 mb-0">Articles populaires</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <a href="#" class="list-group-item list-group-item-action border-0 px-0 py-3" v-for="article in popularArticles" :key="article.id" @click="loadArticle(article.id)">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1 h6">{{ article.title }}</h5>
+                                        <small class="text-muted">{{ formatDate(article.date) }}</small>
+                                    </div>
+                                    <small class="text-muted">{{ article.author }}</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Newsletter -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 mb-0">Newsletter</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="small text-muted">Recevez les derniers articles directement dans votre boîte mail.</p>
+                            <form @submit.prevent="subscribeNewsletter">
+                                <div class="mb-3">
+                                    <input type="email" class="form-control" placeholder="Votre email" v-model="newsletterEmail" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">S'abonner</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true" :class="{'show': showLogin}" :style="{'display': showLogin ? 'block' : 'none', 'background-color': 'rgba(0,0,0,0.5)'}">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Connexion</h5>
+                        <button type="button" class="btn-close" @click="showLogin = false" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="login" novalidate>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" v-model="loginForm.email" :class="{'is-invalid': loginErrors.email}">
+                                <div class="invalid-feedback" v-if="loginErrors.email">{{ loginErrors.email }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Mot de passe</label>
+                                <input type="password" class="form-control" id="password" v-model="loginForm.password" :class="{'is-invalid': loginErrors.password}">
+                                <div class="invalid-feedback" v-if="loginErrors.password">{{ loginErrors.password }}</div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="remember" v-model="loginForm.remember">
+                                <label class="form-check-label" for="remember">Se souvenir de moi</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" :disabled="loading">
+                                <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                Se connecter
+                            </button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <a href="#" class="text-decoration-none">Mot de passe oublié ?</a>
+                            <p class="mt-2 mb-0">Pas encore de compte ? <a href="#" class="text-decoration-none">S'inscrire</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="bg-dark text-white py-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <h5 class="mb-3">TechAI Blog</h5>
+                        <p>Le blog de référence sur l'intelligence artificielle et ses applications.</p>
+                        <div class="social-icons">
+                            <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="text-white me-2"><i class="fab fa-facebook"></i></a>
+                            <a href="#" class="text-white me-2"><i class="fab fa-linkedin"></i></a>
+                            <a href="#" class="text-white"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-4 mb-md-0">
+                        <h5 class="mb-3">Navigation</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="#" class="text-white text-decoration-none">Accueil</a></li>
+                            <li class="mb-2"><a href="#" class="text-white text-decoration-none">Articles</a></li>
+                            <li class="mb-2"><a href="#" class="text-white text-decoration-none">Catégories</a></li>
+                            <li><a href="#" class="text-white text-decoration-none">À propos</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-2 mb-4 mb-md-0">
+                        <h5 class="mb-3">Catégories</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2" v-for="category in categories" :key="category.name">
+                                <a href="#" class="text-white text-decoration-none">{{ category.name }}</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h5 class="mb-3">Newsletter</h5>
+                        <p>Abonnez-vous pour recevoir les dernières actualités.</p>
+                        <form class="d-flex">
+                            <input type="email" class="form-control me-2" placeholder="Votre email">
+                            <button type="submit" class="btn btn-primary">OK</button>
+                        </form>
+                    </div>
+                </div>
+                <hr class="my-4">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p class="mb-0">&copy; 2023 TechAI Blog. Tous droits réservés.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <a href="#" class="text-white text-decoration-none me-3">Mentions légales</a>
+                        <a href="#" class="text-white text-decoration-none">Politique de confidentialité</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // Data
+                const showLogin = ref(false);
+                const loading = ref(false);
+                const user = ref(null);
+                const currentArticle = ref(null);
+                const newComment = ref('');
+                const newsletterEmail = ref('');
+                
+                // Login form
+                const loginForm = ref({
+                    email: '',
+                    password: '',
+                    remember: false
+                });
+                
+                const loginErrors = ref({
+                    email: '',
+                    password: ''
+                });
+                
+                // Sample data
+                const articles = ref([
+                    {
+                        id: 1,
+                        title: "GPT-4 : La révolution des modèles de langage",
+                        excerpt: "Découvrez comment GPT-4 change la façon dont nous interagissons avec les machines.",
+                        content: "<p>GPT-4 représente une avancée majeure dans le domaine des modèles de langage. Avec ses 1000 milliards de paramètres, il surpasse largement son prédécesseur GPT-3 en termes de compréhension contextuelle et de cohérence dans les réponses.</p><p>Les applications potentielles sont immenses : assistants virtuels plus intelligents, génération de contenu automatisée, aide à la programmation, et bien plus encore.</p><h3>Les nouveautés de GPT-4</h3><ul><li>Meilleure compréhension du contexte</li><li>Capacité à gérer des documents plus longs</li><li>Réponses plus précises et moins biaisées</li><li>Intégration multimédia</li></ul>",
+                        image: "https://via.placeholder.com/800x450/6e8efb/ffffff?text=GPT-4",
+                        category: "Modèles IA",
+                        date: "2023-05-15",
+                        author: "Jean Dupont",
+                        comments: [
+                            { id: 1, author: "Marie Martin", date: "2023-05-16", text: "Très intéressant ! GPT-4 va vraiment changer la donne." },
+                            { id: 2, author: "Pierre Durand", date: "2023-05-17", text: "J'ai testé l'API et les résultats sont impressionnants." }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        title: "L'éthique dans l'IA : Défis et solutions",
+                        excerpt: "Exploration des principaux défis éthiques posés par le développement de l'IA.",
+                        content: "<p>L'éthique de l'IA est devenue un sujet crucial alors que ces technologies s'intègrent de plus en plus dans nos vies quotidiennes. Les biais algorithmiques, la vie privée et l'autonomie des systèmes posent des questions complexes.</p><p>Plusieurs initiatives ont vu le jour pour encadrer le développement responsable de l'IA, comme les principes de l'OCDE ou le règlement européen sur l'IA.</p>",
+                        image: "https://via.placeholder.com/800x450/a777e3/ffffff?text=Ethique+IA",
+                        category: "Éthique",
+                        date: "2023-04-28",
+                        author: "Sophie Lambert",
+                        comments: [
+                            { id: 3, author: "Thomas Roux", date: "2023-05-02", text: "Article très complet sur un sujet essentiel." }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        title: "Stable Diffusion : L'IA qui révolutionne la création d'images",
+                        excerpt: "Comment Stable Diffusion permet à tous de générer des images réalistes à partir de texte.",
+                        content: "<p>Stable Diffusion est un modèle de diffusion qui permet de générer des images à partir de descriptions textuelles. Contrairement à DALL-E de OpenAI, Stable Diffusion est open-source et peut être exécuté sur du matériel grand public.</p><p>Cette accessibilité a conduit à une explosion de créativité, mais soulève également des questions sur les droits d'auteur et l'utilisation éthique.</p>",
+                        image: "https://via.placeholder.com/800x450/4facfe/ffffff?text=Stable+Diffusion",
+                        category: "Génération",
+                        date: "2023-05-10",
+                        author: "Lucie Bernard",
+                        comments: []
+                    },
+                    {
+                        id: 4,
+                        title: "IA et santé : Diagnostic assisté par ordinateur",
+                        excerpt: "Comment l'IA aide les médecins à détecter plus tôt et plus précisément certaines maladies.",
+                        content: "<p>Les algorithmes d'IA montrent des performances impressionnantes dans l'analyse d'images médicales, parfois supérieures à celles des radiologues humains. Des applications concrètes commencent à être déployées dans les hôpitaux.</p><p>Cependant, l'adoption clinique nécessite une validation rigoureuse et une intégration harmonieuse dans les workflows médicaux existants.</p>",
+                        image: "https://via.placeholder.com/800x450/4facfe/ffffff?text=IA+Santé",
+                        category: "Applications",
+                        date: "2023-04-15",
+                        author: "Dr. Martin Leroy",
+                        comments: [
+                            { id: 4, author: "Dr. Élodie Petit", date: "2023-04-18", text: "Nous utilisons déjà ces outils en radiologie avec des résultats prometteurs." },
+                            { id: 5, author: "Pauline Garnier", date: "2023-04-20", text: "Quel impact sur la relation médecin-patient ?" }
+                        ]
+                    }
+                ]);
+                
+                const categories = ref([
+                    { name: "Modèles IA", count: 12, color: "primary" },
+                    { name: "Éthique", count: 8, color: "success" },
+                    { name: "Applications", count: 15, color: "info" },
+                    { name: "Génération", count: 7, color: "warning" },
+                    { name: "Recherche", count: 5, color: "danger" }
+                ]);
+                
+                // Computed properties
+                const featuredArticle = computed(() => {
+                    return articles.value.length > 0 ? articles.value[0] : null;
+                });
+                
+                const popularArticles = computed(() => {
+                    return [...articles.value]
+                        .sort((a, b) => b.comments.length - a.comments.length)
+                        .slice(0, 3);
+                });
+                
+                // Methods
+                const formatDate = (dateString) => {
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    return new Date(dateString).toLocaleDateString('fr-FR', options);
+                };
+                
+                const getCategoryColor = (categoryName) => {
+                    const category = categories.value.find(c => c.name === categoryName);
+                    return category ? category.color : 'secondary';
+                };
+                
+                const loadArticle = (id) => {
+                    const article = articles.value.find(a => a.id === id);
+                    if (article) {
+                        currentArticle.value = article;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                };
+                
+                const login = () => {
+                    loading.value = true;
+                    loginErrors.value = { email: '', password: '' };
+                    
+                    // Simple validation
+                    let isValid = true;
+                    
+                    if (!loginForm.value.email) {
+                        loginErrors.value.email = "L'email est requis";
+                        isValid = false;
+                    } else if (!/^\S+@\S+\.\S+$/.test(loginForm.value.email)) {
+                        loginErrors.value.email = "Veuillez entrer un email valide";
+                        isValid = false;
+                    }
+                    
+                    if (!loginForm.value.password) {
+                        loginErrors.value.password = "Le mot de passe est requis";
+                        isValid = false;
+                    } else if (loginForm.value.password.length < 6) {
+                        loginErrors.value.password = "Le mot de passe doit contenir au moins 6 caractères";
+                        isValid = false;
+                    }
+                    
+                    if (!isValid) {
+                        loading.value = false;
+                        return;
+                    }
+                    
+                    // Simulate API call
+                    setTimeout(() => {
+                        user.value = {
+                            name: "Utilisateur Test",
+                            email: loginForm.value.email
+                        };
+                        showLogin.value = false;
+                        loading.value = false;
+                        
+                        // Reset form
+                        loginForm.value = {
+                            email: '',
+                            password: '',
+                            remember: false
+                        };
+                    }, 1000);
+                };
+                
+                const logout = () => {
+                    user.value = null;
+                };
+                
+                const addComment = () => {
+                    if (!newComment.value.trim()) return;
+                    
+                    const newCommentObj = {
+                        id: Date.now(),
+                        author: user.value.name,
+                        date: new Date().toISOString().split('T')[0],
+                        text: newComment.value
+                    };
+                    
+                    currentArticle.value.comments.push(newCommentObj);
+                    newComment.value = '';
+                };
+                
+                const subscribeNewsletter = () => {
+                    alert(`Merci pour votre inscription avec l'email: ${newsletterEmail.value}`);
+                    newsletterEmail.value = '';
+                };
+                
+                // Lifecycle hooks
+                onMounted(() => {
+                    // Simulate loading articles from API
+                    // axios.get('/api/articles')
+                    //     .then(response => {
+                    //         articles.value = response.data;
+                    //     })
+                    //     .catch(error => {
+                    //         console.error('Error fetching articles:', error);
+                    //     });
+                });
+                
+                return {
+                    showLogin,
+                    loading,
+                    user,
+                    currentArticle,
+                    newComment,
+                    newsletterEmail,
+                    loginForm,
+                    loginErrors,
+                    articles,
+                    categories,
+                    featuredArticle,
+                    popularArticles,
+                    formatDate,
+                    getCategoryColor,
+                    loadArticle,
+                    login,
+                    logout,
+                    addComment,
+                    subscribeNewsletter
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

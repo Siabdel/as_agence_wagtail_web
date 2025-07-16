@@ -1,0 +1,14 @@
+<section class="projects py-5">
+    <div class="container">
+        <h2 class="mb-4">{{ block.value.title }}</h2>
+        <div class="row g-4">
+        {% for item in block.value.project_items %}
+            <div class="col-md-3">
+            {% image item.image fill-400x300 %}
+            <h4>{{ item.title }}</h4>
+            <p class="text-muted">{{ item.category }}</p>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</section>

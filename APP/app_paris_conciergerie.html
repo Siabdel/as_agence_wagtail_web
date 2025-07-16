@@ -1,0 +1,601 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParisConcierge | Gestion Immobilière Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
+    <style>
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .map-container {
+            height: 300px;
+            border-radius: 1rem;
+        }
+        .service-icon {
+            transition: all 0.3s ease;
+        }
+        .service-icon:hover {
+            transform: scale(1.1);
+        }
+        .nav-link.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .booking-form {
+            backdrop-filter: blur(10px);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header/Navigation -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-building text-blue-500 text-2xl"></i>
+                <span class="text-xl font-bold text-blue-600">ParisConcierge</span>
+            </div>
+            <nav class="hidden md:flex space-x-8">
+                <a href="#" class="nav-link active font-medium text-gray-700 hover:text-blue-500 py-2">Accueil</a>
+                <a href="#" class="nav-link font-medium text-gray-700 hover:text-blue-500 py-2">Nos biens</a>
+                <a href="#" class="nav-link font-medium text-gray-700 hover:text-blue-500 py-2">Services</a>
+                <a href="#" class="nav-link font-medium text-gray-700 hover:text-blue-500 py-2">Propriétaires</a>
+                <a href="#" class="nav-link font-medium text-gray-700 hover:text-blue-500 py-2">Contact</a>
+            </nav>
+            <div class="flex items-center space-x-4">
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full font-medium transition duration-300">
+                    Connexion
+                </button>
+                <button class="md:hidden text-gray-600">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-r from-blue-500 to-blue-700 text-white py-20">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-10 md:mb-0 fade-in">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Votre conciergerie immobilière à Paris</h1>
+                <p class="text-xl mb-8">Gestion complète de vos locations avec services premium pour propriétaires et locataires.</p>
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                    <button class="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 rounded-full font-semibold transition duration-300">
+                        Trouver un bien
+                    </button>
+                    <button class="bg-transparent border-2 border-white hover:bg-white hover:text-blue-600 px-6 py-3 rounded-full font-semibold transition duration-300">
+                        Découvrir nos services
+                    </button>
+                </div>
+            </div>
+            <div class="md:w-1/2 fade-in">
+                <img src="https://images.unsplash.com/photo-1554469384-e58fac16e23a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" 
+                     alt="Appartement parisien" 
+                     class="rounded-xl shadow-2xl w-full h-auto">
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="container mx-auto px-4 -mt-10 z-10 relative">
+        <div class="bg-white rounded-xl shadow-xl p-6 booking-form">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Destination</label>
+                    <div class="relative">
+                        <input type="text" placeholder="Paris, France" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-map-marker-alt absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Arrivée</label>
+                    <div class="relative">
+                        <input type="date" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-calendar-alt absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Départ</label>
+                    <div class="relative">
+                        <input type="date" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-calendar-alt absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg font-semibold transition duration-300">
+                        Rechercher
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Properties -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Nos biens immobiliers à Paris</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Découvrez notre sélection d'appartements et maisons haut de gamme dans les meilleurs quartiers de Paris.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Property 1 -->
+                <div class="bg-white rounded-xl overflow-hidden shadow-md property-card transition duration-300">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" 
+                             alt="Appartement Le Marais" 
+                             class="w-full h-64 object-cover">
+                        <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow flex items-center">
+                            <i class="fas fa-star text-yellow-400 mr-1"></i>
+                            <span class="font-medium">4.9</span>
+                        </div>
+                        <div class="absolute bottom-4 left-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                            Nouveau
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-gray-800">Le Marais - Luxe</h3>
+                            <p class="text-gray-800 font-bold">€250<span class="text-gray-600 font-normal">/nuit</span></p>
+                        </div>
+                        <p class="text-gray-600 mb-4">Appartement 3 pièces - 75m² - 4 personnes</p>
+                        
+                        <div class="flex space-x-2 mb-4">
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">WiFi</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Cuisine</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">TV</span>
+                        </div>
+                        
+                        <div id="map1" class="map-container mb-4"></div>
+                        
+                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition duration-300">
+                            Voir les disponibilités
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Property 2 -->
+                <div class="bg-white rounded-xl overflow-hidden shadow-md property-card transition duration-300">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" 
+                             alt="Appartement Saint-Germain" 
+                             class="w-full h-64 object-cover">
+                        <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow flex items-center">
+                            <i class="fas fa-star text-yellow-400 mr-1"></i>
+                            <span class="font-medium">4.7</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-gray-800">Saint-Germain</h3>
+                            <p class="text-gray-800 font-bold">€180<span class="text-gray-600 font-normal">/nuit</span></p>
+                        </div>
+                        <p class="text-gray-600 mb-4">Appartement 2 pièces - 50m² - 2 personnes</p>
+                        
+                        <div class="flex space-x-2 mb-4">
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">WiFi</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Lave-linge</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Climatisation</span>
+                        </div>
+                        
+                        <div id="map2" class="map-container mb-4"></div>
+                        
+                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition duration-300">
+                            Voir les disponibilités
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Property 3 -->
+                <div class="bg-white rounded-xl overflow-hidden shadow-md property-card transition duration-300">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" 
+                             alt="Appartement Montmartre" 
+                             class="w-full h-64 object-cover">
+                        <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow flex items-center">
+                            <i class="fas fa-star text-yellow-400 mr-1"></i>
+                            <span class="font-medium">4.8</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-gray-800">Montmartre Charmant</h3>
+                            <p class="text-gray-800 font-bold">€210<span class="text-gray-600 font-normal">/nuit</span></p>
+                        </div>
+                        <p class="text-gray-600 mb-4">Appartement 2 pièces - 60m² - 3 personnes</p>
+                        
+                        <div class="flex space-x-2 mb-4">
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">WiFi</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Terrasse</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Parking</span>
+                        </div>
+                        
+                        <div id="map3" class="map-container mb-4"></div>
+                        
+                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition duration-300">
+                            Voir les disponibilités
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-10">
+                <button class="bg-white border-2 border-blue-500 text-blue-500 hover:bg-blue-50 px-6 py-3 rounded-full font-semibold transition duration-300">
+                    Voir tous nos biens
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Nos services conciergerie</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Nous offrons une gamme complète de services pour rendre votre séjour parfait.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-gray-50 p-6 rounded-xl text-center hover:bg-blue-50 transition duration-300">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 service-icon">
+                        <i class="fas fa-broom text-blue-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Ménage professionnel</h3>
+                    <p class="text-gray-600">Nettoyage complet de votre logement par des professionnels.</p>
+                </div>
+                
+                <div class="bg-gray-50 p-6 rounded-xl text-center hover:bg-blue-50 transition duration-300">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 service-icon">
+                        <i class="fas fa-tshirt text-blue-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Repassage</h3>
+                    <p class="text-gray-600">Service de repassage et pressing pour vos vêtements.</p>
+                </div>
+                
+                <div class="bg-gray-50 p-6 rounded-xl text-center hover:bg-blue-50 transition duration-300">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 service-icon">
+                        <i class="fas fa-car text-blue-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Transfert aéroport</h3>
+                    <p class="text-gray-600">Service de voiture privée pour vos arrivées et départs.</p>
+                </div>
+                
+                <div class="bg-gray-50 p-6 rounded-xl text-center hover:bg-blue-50 transition duration-300">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 service-icon">
+                        <i class="fas fa-utensils text-blue-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Chef à domicile</h3>
+                    <p class="text-gray-600">Dînez comme au restaurant sans quitter votre logement.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Owner Benefits Section -->
+    <section class="py-16 bg-blue-50">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col lg:flex-row items-center">
+                <div class="lg:w-1/2 mb-10 lg:mb-0 lg:pr-10">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Vous êtes propriétaire à Paris ?</h2>
+                    <p class="text-gray-600 mb-6">Nous gérons votre bien immobilier de A à Z pour maximiser votre rendement tout en vous libérant des contraintes.</p>
+                    
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">Gestion complète des locations et réservations</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">Ménage et maintenance professionnels</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">Optimisation fiscale et comptabilité</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">Rapports détaillés et paiements réguliers</span>
+                        </li>
+                    </ul>
+                    
+                    <button class="mt-8 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-full font-semibold transition duration-300">
+                        En savoir plus
+                    </button>
+                </div>
+                <div class="lg:w-1/2">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Calculez votre rendement</h3>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Type de bien</label>
+                            <select class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>Appartement</option>
+                                <option>Maison</option>
+                                <option>Studio</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Arrondissement</label>
+                            <select class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>1er - Louvre</option>
+                                <option>4ème - Hôtel-de-Ville</option>
+                                <option>6ème - Luxembourg</option>
+                                <option>7ème - Palais-Bourbon</option>
+                                <option>8ème - Élysée</option>
+                                <option>16ème - Passy</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Surface (m²)</label>
+                            <input type="number" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 60">
+                        </div>
+                        
+                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-semibold transition duration-300">
+                            Estimer mon revenu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Ce que disent nos clients</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Découvrez les témoignages de nos propriétaires et locataires satisfaits.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gray-50 p-8 rounded-xl">
+                    <div class="flex items-center mb-4">
+                        <div class="flex -space-x-2">
+                            <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-12 h-12 rounded-full border-2 border-white">
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">Sophie Martin</h4>
+                            <p class="text-gray-600 text-sm">Propriétaire - Le Marais</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">"Depuis que ParisConcierge gère mon appartement, je n'ai plus aucune contrainte et mes revenus ont augmenté de 30%. Je recommande vivement !"</p>
+                    <div class="mt-4 flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-8 rounded-xl">
+                    <div class="flex items-center mb-4">
+                        <div class="flex -space-x-2">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-12 h-12 rounded-full border-2 border-white">
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">Thomas Lefèvre</h4>
+                            <p class="text-gray-600 text-sm">Locataire - Saint-Germain</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">"Le service est impeccable. L'appartement était parfait et l'équipe a répondu à toutes mes demandes en moins d'une heure. Je reviendrai !"</p>
+                    <div class="mt-4 flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-8 rounded-xl">
+                    <div class="flex items-center mb-4">
+                        <div class="flex -space-x-2">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" class="w-12 h-12 rounded-full border-2 border-white">
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">Camille Dubois</h4>
+                            <p class="text-gray-600 text-sm">Propriétaire - Montmartre</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">"J'ai essayé plusieurs agences avant de trouver ParisConcierge. Leur service personnalisé et leur professionnalisme font toute la différence."</p>
+                    <div class="mt-4 flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-blue-600 text-white">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold mb-6">Prêt à vivre l'expérience ParisConcierge ?</h2>
+            <p class="text-xl mb-8 max-w-2xl mx-auto">Que vous soyez propriétaire ou locataire, nous avons la solution parfaite pour vos besoins immobiliers à Paris.</p>
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <button class="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-full font-semibold transition duration-300">
+                    Je suis propriétaire
+                </button>
+                <button class="bg-transparent border-2 border-white hover:bg-white hover:text-blue-600 px-8 py-3 rounded-full font-semibold transition duration-300">
+                    Je cherche un logement
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white pt-12 pb-6">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fas fa-building text-blue-400 text-2xl"></i>
+                        <span class="text-xl font-bold">ParisConcierge</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">Votre conciergerie immobilière premium à Paris depuis 2015.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Liens rapides</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Accueil</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Nos biens</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Services</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Propriétaires</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Services</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Gestion locative</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Ménage professionnel</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Repassage</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Transfert aéroport</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Chef à domicile</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contact</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
+                            <span class="text-gray-400">12 Rue de Rivoli, 75004 Paris</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone-alt mt-1 mr-3 text-blue-400"></i>
+                            <span class="text-gray-400">+33 1 23 45 67 89</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
+                            <span class="text-gray-400">contact@parisconcierge.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2023 ParisConcierge. Tous droits réservés.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm">Mentions légales</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm">Politique de confidentialité</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm">Conditions générales</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+    <script>
+        // Initialize maps
+        mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+        
+        // Property 1 - Le Marais
+        const map1 = new mapboxgl.Map({
+            container: 'map1',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [2.3606, 48.8575], // Le Marais coordinates
+            zoom: 14,
+            interactive: false
+        });
+        
+        new mapboxgl.Marker({ color: '#3B82F6' })
+            .setLngLat([2.3606, 48.8575])
+            .addTo(map1);
+        
+        // Property 2 - Saint-Germain
+        const map2 = new mapboxgl.Map({
+            container: 'map2',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [2.3324, 48.8534], // Saint-Germain coordinates
+            zoom: 14,
+            interactive: false
+        });
+        
+        new mapboxgl.Marker({ color: '#3B82F6' })
+            .setLngLat([2.3324, 48.8534])
+            .addTo(map2);
+        
+        // Property 3 - Montmartre
+        const map3 = new mapboxgl.Map({
+            container: 'map3',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [2.3427, 48.8867], // Montmartre coordinates
+            zoom: 14,
+            interactive: false
+        });
+        
+        new mapboxgl.Marker({ color: '#3B82F6' })
+            .setLngLat([2.3427, 48.8867])
+            .addTo(map3);
+        
+        // Mobile menu toggle
+        document.querySelector('.md\\:hidden').addEventListener('click', function() {
+            const nav = document.querySelector('nav');
+            nav.classList.toggle('hidden');
+            nav.classList.toggle('flex');
+            nav.classList.toggle('flex-col');
+            nav.classList.toggle('absolute');
+            nav.classList.toggle('top-16');
+            nav.classList.toggle('left-0');
+            nav.classList.toggle('right-0');
+            nav.classList.toggle('bg-white');
+            nav.classList.toggle('p-4');
+            nav.classList.toggle('shadow-md');
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Add fade-in animation to elements as they come into view
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const fadeInObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        fadeElements.forEach(element => {
+            element.classList.add('opacity-0');
+            fadeInObserver.observe(element);
+        });
+    </script>
+</body>
+</html>

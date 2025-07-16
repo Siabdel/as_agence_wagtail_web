@@ -1,0 +1,448 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPANSIO WMS - Gestion Avancée des Entrepôts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .scan-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="gradient-bg text-white shadow-lg">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-boxes text-2xl mr-2"></i>
+                            <span class="text-xl font-bold">EXPANSIO WMS</span>
+                        </div>
+                        <div class="hidden md:flex space-x-6">
+                            <a href="#" class="hover:text-blue-200 font-medium">Tableau de bord</a>
+                            <a href="#" class="hover:text-blue-200 font-medium">Inventaire</a>
+                            <a href="#" class="hover:text-blue-200 font-medium">Commandes</a>
+                            <a href="#" class="hover:text-blue-200 font-medium">Expéditions</a>
+                            <a href="#" class="hover:text-blue-200 font-medium">Analytique</a>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" placeholder="Recherche..." class="bg-blue-800 text-white px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300 w-64">
+                            <i class="fas fa-search absolute right-3 top-2.5 text-blue-300"></i>
+                        </div>
+                        <div class="relative">
+                            <i class="fas fa-bell text-xl cursor-pointer hover:text-blue-200"></i>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                        </div>
+                        <div class="flex items-center space-x-2 cursor-pointer">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="h-8 w-8 rounded-full border-2 border-white">
+                            <span class="hidden md:inline">John Doe</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden bg-blue-900 text-white px-4 py-2">
+            <div class="flex justify-between items-center">
+                <button @click="toggleMobileMenu" class="text-white focus:outline-none">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="relative w-48">
+                    <input type="text" placeholder="Recherche..." class="bg-blue-800 text-white px-4 py-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-300 w-full">
+                    <i class="fas fa-search absolute right-3 top-2 text-blue-300"></i>
+                </div>
+            </div>
+            <div v-if="mobileMenuOpen" class="mt-2 space-y-2 pb-2">
+                <a href="#" class="block px-2 py-1 hover:bg-blue-800 rounded">Tableau de bord</a>
+                <a href="#" class="block px-2 py-1 hover:bg-blue-800 rounded">Inventaire</a>
+                <a href="#" class="block px-2 py-1 hover:bg-blue-800 rounded">Commandes</a>
+                <a href="#" class="block px-2 py-1 hover:bg-blue-800 rounded">Expéditions</a>
+                <a href="#" class="block px-2 py-1 hover:bg-blue-800 rounded">Analytique</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container mx-auto px-4 py-6">
+            <!-- Dashboard Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Tableau de bord</h1>
+                    <p class="text-gray-600">Bienvenue dans votre système de gestion d'entrepôt</p>
+                </div>
+                <div class="flex space-x-3 mt-4 md:mt-0">
+                    <button class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center">
+                        <i class="fas fa-download mr-2"></i> Exporter
+                    </button>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Nouvelle commande
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="dashboard-card bg-white rounded-xl shadow p-6 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Articles en stock</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">12,458</h3>
+                            <p class="text-green-500 text-sm mt-2 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i> 5.2% depuis hier
+                            </p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-boxes text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card bg-white rounded-xl shadow p-6 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Commandes aujourd'hui</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">247</h3>
+                            <p class="text-green-500 text-sm mt-2 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i> 12.7% depuis hier
+                            </p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card bg-white rounded-xl shadow p-6 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Expéditions en attente</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">83</h3>
+                            <p class="text-red-500 text-sm mt-2 flex items-center">
+                                <i class="fas fa-arrow-down mr-1"></i> 3.1% depuis hier
+                            </p>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <i class="fas fa-truck text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card bg-white rounded-xl shadow p-6 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Taux de précision</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">98.7%</h3>
+                            <p class="text-green-500 text-sm mt-2 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i> 1.2% depuis hier
+                            </p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <i class="fas fa-check-circle text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Content -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Warehouse Activity -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800">Activité de l'entrepôt</h2>
+                            <select class="bg-gray-100 border border-gray-300 text-gray-700 py-1 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm">
+                                <option>Aujourd'hui</option>
+                                <option>Cette semaine</option>
+                                <option>Ce mois</option>
+                            </select>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Recent Orders -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800">Commandes récentes</h2>
+                            <a href="#" class="text-blue-600 text-sm hover:underline">Voir tout</a>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Commande</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr v-for="order in recentOrders" :key="order.id" class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{order.id}}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{order.customer}}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`">
+                                                {{order.status}}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{order.date}}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <button class="text-blue-600 hover:text-blue-900 mr-3"><i class="fas fa-eye"></i></button>
+                                            <button class="text-green-600 hover:text-green-900"><i class="fas fa-edit"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">Actions rapides</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button @click="showScanner = true" class="scan-animation bg-blue-600 text-white p-4 rounded-lg flex flex-col items-center justify-center hover:bg-blue-700 transition">
+                                <i class="fas fa-barcode text-2xl mb-2"></i>
+                                <span>Scanner</span>
+                            </button>
+                            <button class="bg-green-600 text-white p-4 rounded-lg flex flex-col items-center justify-center hover:bg-green-700 transition">
+                                <i class="fas fa-plus-circle text-2xl mb-2"></i>
+                                <span>Nouvel article</span>
+                            </button>
+                            <button class="bg-purple-600 text-white p-4 rounded-lg flex flex-col items-center justify-center hover:bg-purple-700 transition">
+                                <i class="fas fa-file-import text-2xl mb-2"></i>
+                                <span>Import</span>
+                            </button>
+                            <button class="bg-yellow-500 text-white p-4 rounded-lg flex flex-col items-center justify-center hover:bg-yellow-600 transition">
+                                <i class="fas fa-file-export text-2xl mb-2"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Scanner Modal -->
+                    <div v-if="showScanner" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Scanner un code-barres/QR</h3>
+                                <button @click="showScanner = false" class="text-gray-500 hover:text-gray-700">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4 flex items-center justify-center h-48">
+                                <div class="text-center">
+                                    <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                                    <p class="text-gray-500">Scanner en cours...</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-between">
+                                <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">Annuler</button>
+                                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Low Stock Alerts -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800">Alertes stock faible</h2>
+                            <a href="#" class="text-blue-600 text-sm hover:underline">Voir tout</a>
+                        </div>
+                        <div class="space-y-4">
+                            <div v-for="item in lowStockItems" :key="item.id" class="flex items-start p-3 hover:bg-gray-50 rounded-lg">
+                                <div class="bg-red-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-exclamation text-red-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-gray-800">{{item.name}}</h4>
+                                    <p class="text-xs text-gray-500">Stock restant: {{item.stock}} (seuil: {{item.threshold}})</p>
+                                </div>
+                                <button class="text-blue-600 hover:text-blue-800 text-sm">Commander</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Integrations -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">Intégrations système</h2>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/SAP_2011_logo.svg" alt="SAP" class="h-8 mr-3">
+                                    <span>SAP ERP</span>
+                                </div>
+                                <span class="text-green-500 text-sm">Connecté</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/Microsoft_Dynamics_365_Logo.svg" alt="Dynamics" class="h-8 mr-3">
+                                    <span>Microsoft Dynamics</span>
+                                </div>
+                                <span class="text-green-500 text-sm">Connecté</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg" alt="Oracle" class="h-8 mr-3">
+                                    <span>Oracle NetSuite</span>
+                                </div>
+                                <span class="text-gray-500 text-sm">Non connecté</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Shopify_logo_2018.svg" alt="Shopify" class="h-8 mr-3">
+                                    <span>Shopify</span>
+                                </div>
+                                <span class="text-green-500 text-sm">Connecté</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="gradient-bg text-white py-6">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <div class="flex items-center">
+                            <i class="fas fa-boxes text-2xl mr-2"></i>
+                            <span class="text-xl font-bold">EXPANSIO WMS</span>
+                        </div>
+                        <p class="text-blue-200 mt-1">Solution de gestion d'entrepôt intelligente</p>
+                    </div>
+                    <div class="flex space-x-6">
+                        <a href="#" class="hover:text-blue-200">À propos</a>
+                        <a href="#" class="hover:text-blue-200">Fonctionnalités</a>
+                        <a href="#" class="hover:text-blue-200">Tarifs</a>
+                        <a href="#" class="hover:text-blue-200">Contact</a>
+                    </div>
+                </div>
+                <div class="border-t border-blue-800 mt-6 pt-6 flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-blue-200 text-sm mb-4 md:mb-0">© 2023 EXPANSIO WMS. Tous droits réservés.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-blue-200 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-blue-200 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-blue-200 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="text-blue-200 hover:text-white"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const mobileMenuOpen = ref(false);
+                const showScanner = ref(false);
+                
+                const recentOrders = ref([
+                    { id: '1001', customer: 'Amazon FR', status: 'En préparation', date: '15/06/2023' },
+                    { id: '1002', customer: 'Darty', status: 'Expédié', date: '15/06/2023' },
+                    { id: '1003', customer: 'Boulanger', status: 'En attente', date: '14/06/2023' },
+                    { id: '1004', customer: 'Fnac', status: 'Complété', date: '14/06/2023' },
+                    { id: '1005', customer: 'CDiscount', status: 'En préparation', date: '14/06/2023' }
+                ]);
+
+                const lowStockItems = ref([
+                    { id: 1, name: 'Smartphone X200', stock: 12, threshold: 20 },
+                    { id: 2, name: 'Écouteurs Bluetooth Pro', stock: 8, threshold: 15 },
+                    { id: 3, name: 'Chargeur USB-C 65W', stock: 5, threshold: 10 }
+                ]);
+
+                const toggleMobileMenu = () => {
+                    mobileMenuOpen.value = !mobileMenuOpen.value;
+                };
+
+                const getStatusColor = (status) => {
+                    switch(status) {
+                        case 'En préparation': return 'bg-blue-100 text-blue-800';
+                        case 'Expédié': return 'bg-green-100 text-green-800';
+                        case 'Complété': return 'bg-purple-100 text-purple-800';
+                        default: return 'bg-yellow-100 text-yellow-800';
+                    }
+                };
+
+                return {
+                    mobileMenuOpen,
+                    showScanner,
+                    recentOrders,
+                    lowStockItems,
+                    toggleMobileMenu,
+                    getStatusColor
+                };
+            },
+            mounted() {
+                // Initialize activity chart
+                const ctx = document.getElementById('activityChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                        datasets: [
+                            {
+                                label: 'Commandes reçues',
+                                data: [120, 190, 170, 210, 240, 180, 90],
+                                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Commandes expédiées',
+                                data: [100, 170, 150, 190, 220, 160, 70],
+                                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

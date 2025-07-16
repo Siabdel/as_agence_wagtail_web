@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Gestion de projet professionnel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .board-column {
+            min-height: 500px;
+        }
+        .task-card {
+            transition: all 0.3s ease;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .dragging {
+            opacity: 0.5;
+            background: #e2e8f0;
+        }
+        .dropzone {
+            min-height: 100px;
+            transition: background 0.3s;
+        }
+        .dropzone.active {
+            background: rgba(56, 178, 172, 0.1);
+            border: 2px dashed #38b2ac;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-indigo-700 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <i class="mdi mdi-view-dashboard-variant text-3xl mr-2"></i>
+                        <h1 class="text-2xl font-bold">TaskFlow</h1>
+                    </div>
+                    <nav class="hidden md:flex space-x-6">
+                        <a href="#" class="hover:text-indigo-200 font-medium">Tableaux</a>
+                        <a href="#" class="hover:text-indigo-200 font-medium">Modèles</a>
+                        <a href="#" class="hover:text-indigo-200 font-medium">Rapports</a>
+                    </nav>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Rechercher..." class="bg-indigo-600 text-white placeholder-indigo-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                        <i class="mdi mdi-magnify absolute right-3 top-2.5 text-indigo-300"></i>
+                    </div>
+                    <button class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-md font-medium flex items-center">
+                        <i class="mdi mdi-plus mr-1"></i> Créer
+                    </button>
+                    <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center cursor-pointer">
+                        <span class="text-white font-bold">JD</span>
+                    </div>
+                </div>
+                <button class="md:hidden text-white">
+                    <i class="mdi mdi-menu text-2xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Board Header -->
+        <div class="bg-white shadow-sm">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Projet Marketing Digital</h2>
+                        <p class="text-gray-600">Équipe Marketing | Créé le 15/06/2023</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex space-x-3">
+                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md font-medium flex items-center">
+                            <i class="mdi mdi-account-multiple-plus mr-2"></i> Partager
+                        </button>
+                        <button class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-md font-medium flex items-center">
+                            <i class="mdi mdi-cog mr-2"></i> Paramètres
+                        </button>
+                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md font-medium">
+                            <i class="mdi mdi-dots-horizontal"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Board Filters -->
+        <div class="bg-gray-50 border-b">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative">
+                        <select class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            <option>Tous les membres</option>
+                            <option>Jean Dupont</option>
+                            <option>Marie Martin</option>
+                        </select>
+                        <i class="mdi mdi-chevron-down absolute right-2 top-2.5 text-gray-500"></i>
+                    </div>
+                    <div class="relative">
+                        <select class="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            <option>Toutes les étiquettes</option>
+                            <option>Urgent</option>
+                            <option>Important</option>
+                        </select>
+                        <i class="mdi mdi-chevron-down absolute right-2 top-2.5 text-gray-500"></i>
+                    </div>
+                    <button class="bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                        <i class="mdi mdi-filter-outline mr-2"></i> Filtres
+                    </button>
+                    <button class="bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                        <i class="mdi mdi-chart-bar mr-2"></i> Vues
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Board Content -->
+        <main class="flex-1 overflow-x-auto py-6">
+            <div class="container mx-auto px-4">
+                <div class="flex space-x-4 overflow-x-auto pb-4">
+                    <!-- Column 1: À faire -->
+                    <div class="flex-shrink-0 w-72 bg-gray-100 rounded-lg board-column" 
+                         @dragover.prevent="dragOver($event, 'todo')" 
+                         @drop.prevent="drop($event, 'todo')"
+                         :class="{ 'dropzone active': dragStatus === 'todo' }">
+                        <div class="p-3 border-b border-gray-300 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-700">À faire</h3>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-sm text-gray-500">{{ getTaskCount('todo') }}</span>
+                                <button @click="addTask('todo')" class="text-gray-500 hover:text-gray-700">
+                                    <i class="mdi mdi-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-3">
+                            <div v-for="(task, index) in tasks.todo" :key="'todo-'+index"
+                                 class="task-card bg-white rounded-lg shadow p-4 cursor-move"
+                                 draggable="true"
+                                 @dragstart="dragStart($event, 'todo', index)"
+                                 @dragend="dragEnd"
+                                 :class="{ 'dragging': dragItem.status === 'todo' && dragItem.index === index }">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-medium text-gray-800">{{ task.title }}</h4>
+                                    <div class="flex space-x-1">
+                                        <span v-if="task.priority === 'high'" class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full">Urgent</span>
+                                        <button @click.stop="editTask('todo', index)" class="text-gray-400 hover:text-gray-600">
+                                            <i class="mdi mdi-pencil-outline"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-2">{{ task.description }}</p>
+                                <div class="mt-3 flex justify-between items-center">
+                                    <div class="flex items-center space-x-2">
+                                        <span v-if="task.dueDate" class="text-xs text-gray-500 flex items-center">
+                                            <i class="mdi mdi-calendar-outline mr-1"></i>{{ task.dueDate }}
+                                        </span>
+                                    </div>
+                                    <div class="flex -space-x-1">
+                                        <div v-for="(member, mi) in task.members.slice(0, 3)" :key="'member-'+mi" 
+                                             class="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-xs font-bold text-indigo-700">
+                                            {{ member.charAt(0) }}
+                                        </div>
+                                        <div v-if="task.members.length > 3" class="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-700">
+                                            +{{ task.members.length - 3 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: En cours -->
+                    <div class="flex-shrink-0 w-72 bg-gray-100 rounded-lg board-column"
+                         @dragover.prevent="dragOver($event, 'inProgress')" 
+                         @drop.prevent="drop($event, 'inProgress')"
+                         :class="{ 'dropzone active': dragStatus === 'inProgress' }">
+                        <div class="p-3 border-b border-gray-300 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-700">En cours</h3>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-sm text-gray-500">{{ getTaskCount('inProgress') }}</span>
+                                <button @click="addTask('inProgress')" class="text-gray-500 hover:text-gray-700">
+                                    <i class="mdi mdi-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-3">
+                            <div v-for="(task, index) in tasks.inProgress" :key="'inProgress-'+index"
+                                 class="task-card bg-white rounded-lg shadow p-4 cursor-move"
+                                 draggable="true"
+                                 @dragstart="dragStart($event, 'inProgress', index)"
+                                 @dragend="dragEnd"
+                                 :class="{ 'dragging': dragItem.status === 'inProgress' && dragItem.index === index }">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-medium text-gray-800">{{ task.title }}</h4>
+                                    <div class="flex space-x-1">
+                                        <span v-if="task.priority === 'high'" class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full">Urgent</span>
+                                        <button @click.stop="editTask('inProgress', index)" class="text-gray-400 hover:text-gray-600">
+                                            <i class="mdi mdi-pencil-outline"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-2">{{ task.description }}</p>
+                                <div class="mt-3 flex justify-between items-center">
+                                    <div class="flex items-center space-x-2">
+                                        <span v-if="task.dueDate" class="text-xs text-gray-500 flex items-center">
+                                            <i class="mdi mdi-calendar-outline mr-1"></i>{{ task.dueDate }}
+                                        </span>
+                                    </div>
+                                    <div class="flex -space-x-1">
+                                        <div v-for="(member, mi) in task.members.slice(0, 3)" :key="'member-'+mi" 
+                                             class="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-xs font-bold text-indigo-700">
+                                            {{ member.charAt(0) }}
+                                        </div>
+                                        <div v-if="task.members.length > 3" class="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-700">
+                                            +{{ task.members.length - 3 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: En revue -->
+                    <div class="flex-shrink-0 w-72 bg-gray-100 rounded-lg board-column"
+                         @dragover.prevent="dragOver($event, 'inReview')" 
+                         @drop.prevent="drop($event, 'inReview')"
+                         :class="{ 'dropzone active': dragStatus === 'inReview' }">
+                        <div class="p-3 border-b border-gray-300 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-700">En revue</h3>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-sm text-gray-500">{{ getTaskCount('inReview') }}</span>
+                                <button @click="addTask('inReview')" class="text-gray-500 hover:text-gray-700">
+                                    <i class="mdi mdi-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-3">
+                            <div v-for="(task, index) in tasks.inReview" :key="'inReview-'+index"
+                                 class="task-card bg-white rounded-lg shadow p-4 cursor-move"
+                                 draggable="true"
+                                 @dragstart="dragStart($event, 'inReview', index)"
+                                 @dragend="dragEnd"
+                                 :class="{ 'dragging': dragItem.status === 'inReview' && dragItem.index === index }">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-medium text-gray-800">{{ task.title }}</h4>
+                                    <div class="flex space-x-1">
+                                        <span v-if="task.priority === 'high'" class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full">Urgent</span>
+                                        <button @click.stop="editTask('inReview', index)" class="text-gray-400 hover:text-gray-600">
+                                            <i class="mdi mdi-pencil-outline"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-2">{{ task.description }}</p>
+                                <div class="mt-3 flex justify-between items-center">
+                                    <div class="flex items-center space-x-2">
+                                        <span v-if="task.dueDate" class="text-xs text-gray-500 flex items-center">
+                                            <i class="mdi mdi-calendar-outline mr-1"></i>{{ task.dueDate }}
+                                        </span>
+                                    </div>
+                                    <div class="flex -space-x-1">
+                                        <div v-for="(member, mi) in task.members.slice(0, 3)" :key="'member-'+mi" 
+                                             class="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-xs font-bold text-indigo-700">
+                                            {{ member.charAt(0) }}
+                                        </div>
+                                        <div v-if="task.members.length > 3" class="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-700">
+                                            +{{ task.members.length - 3 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 4: Terminé -->
+                    <div class="flex-shrink-0 w-72 bg-gray-100 rounded-lg board-column"
+                         @dragover.prevent="dragOver($event, 'done')" 
+                         @drop.prevent="drop($event, 'done')"
+                         :class="{ 'dropzone active': dragStatus === 'done' }">
+                        <div class="p-3 border-b border-gray-300 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-700">Terminé</h3>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-sm text-gray-500">{{ getTaskCount('done') }}</span>
+                                <button @click="addTask('done')" class="text-gray-500 hover:text-gray-700">
+                                    <i class="mdi mdi-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-3">
+                            <div v-for="(task, index) in tasks.done" :key="'done-'+index"
+                                 class="task-card bg-white rounded-lg shadow p-4 cursor-move"
+                                 draggable="true"
+                                 @dragstart="dragStart($event, 'done', index)"
+                                 @dragend="dragEnd"
+                                 :class="{ 'dragging': dragItem.status === 'done' && dragItem.index === index }">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-medium text-gray-800">{{ task.title }}</h4>
+                                    <div class="flex space-x-1">
+                                        <span v-if="task.priority === 'high'" class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full">Urgent</span>
+                                        <button @click.stop="editTask('done', index)" class="text-gray-400 hover:text-gray-600">
+                                            <i class="mdi mdi-pencil-outline"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-2">{{ task.description }}</p>
+                                <div class="mt-3 flex justify-between items-center">
+                                    <div class="flex items-center space-x-2">
+                                        <span v-if="task.dueDate" class="text-xs text-gray-500 flex items-center">
+                                            <i class="mdi mdi-calendar-outline mr-1"></i>{{ task.dueDate }}
+                                        </span>
+                                    </div>
+                                    <div class="flex -space-x-1">
+                                        <div v-for="(member, mi) in task.members.slice(0, 3)" :key="'member-'+mi" 
+                                             class="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-xs font-bold text-indigo-700">
+                                            {{ member.charAt(0) }}
+                                        </div>
+                                        <div v-if="task.members.length > 3" class="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-700">
+                                            +{{ task.members.length - 3 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add New Column -->
+                    <div class="flex-shrink-0 w-72">
+                        <button @click="addColumn" class="w-full h-full bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center text-gray-600">
+                            <i class="mdi mdi-plus mr-2"></i> Ajouter une colonne
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Task Modal -->
+        <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">
+                            {{ isEditing ? 'Modifier la tâche' : 'Nouvelle tâche' }}
+                        </h3>
+                        <button @click="closeModal" class="text-gray-500 hover:text-gray-700">
+                            <i class="mdi mdi-close"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                            <input v-model="currentTask.title" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea v-model="currentTask.description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date limite</label>
+                                <input v-model="currentTask.dueDate" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                                <select v-model="currentTask.priority" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                                    <option value="low">Faible</option>
+                                    <option value="medium">Moyenne</option>
+                                    <option value="high">Haute</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Membres</label>
+                            <div class="flex flex-wrap gap-2">
+                                <div v-for="(member, index) in currentTask.members" :key="index" class="flex items-center bg-indigo-100 px-3 py-1 rounded-full">
+                                    <span class="text-indigo-700 text-sm">{{ member }}</span>
+                                    <button @click="removeMember(index)" class="ml-1 text-indigo-500 hover:text-indigo-700">
+                                        <i class="mdi mdi-close text-xs"></i>
+                                    </button>
+                                </div>
+                                <div class="relative">
+                                    <input v-model="newMember" @keyup.enter="addMember" type="text" placeholder="Ajouter un membre" class="px-3 py-1 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm">
+                                    <button @click="addMember" class="absolute right-1 top-1 text-indigo-500 hover:text-indigo-700">
+                                        <i class="mdi mdi-plus text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button @click="closeModal" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
+                            Annuler
+                        </button>
+                        <button @click="saveTask" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                            {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                tasks: {
+                    todo: [
+                        {
+                            title: "Créer une campagne publicitaire",
+                            description: "Développer une nouvelle campagne pour le lancement du produit X",
+                            dueDate: "2023-07-10",
+                            priority: "high",
+                            members: ["Jean Dupont", "Marie Martin"]
+                        },
+                        {
+                            title: "Réviser le contenu du site web",
+                            description: "Vérifier et mettre à jour toutes les pages du site web principal",
+                            dueDate: "2023-07-15",
+                            priority: "medium",
+                            members: ["Sophie Leroy"]
+                        }
+                    ],
+                    inProgress: [
+                        {
+                            title: "Design des nouvelles bannières",
+                            description: "Créer des bannières pour les réseaux sociaux et le site web",
+                            dueDate: "2023-07-05",
+                            priority: "medium",
+                            members: ["Pierre Lambert", "Lucie Moreau"]
+                        }
+                    ],
+                    inReview: [
+                        {
+                            title: "Analyse des résultats SEO",
+                            description: "Analyser les performances SEO et proposer des améliorations",
+                            dueDate: "2023-07-08",
+                            priority: "low",
+                            members: ["Thomas Bernard"]
+                        }
+                    ],
+                    done: [
+                        {
+                            title: "Réunion de lancement",
+                            description: "Préparer et animer la réunion de lancement du projet",
+                            dueDate: "2023-06-28",
+                            priority: "medium",
+                            members: ["Jean Dupont", "Marie Martin", "Sophie Leroy"]
+                        }
+                    ]
+                },
+                showModal: false,
+                isEditing: false,
+                currentTask: {
+                    title: "",
+                    description: "",
+                    dueDate: "",
+                    priority: "medium",
+                    members: [],
+                    status: ""
+                },
+                newMember: "",
+                dragItem: {
+                    status: "",
+                    index: -1
+                },
+                dragStatus: "",
+                editContext: {
+                    status: "",
+                    index: -1
+                }
+            },
+            methods: {
+                getTaskCount(status) {
+                    return this.tasks[status].length;
+                },
+                addTask(status) {
+                    this.currentTask = {
+                        title: "",
+                        description: "",
+                        dueDate: "",
+                        priority: "medium",
+                        members: [],
+                        status: status
+                    };
+                    this.isEditing = false;
+                    this.showModal = true;
+                },
+                editTask(status, index) {
+                    this.currentTask = JSON.parse(JSON.stringify(this.tasks[status][index]));
+                    this.currentTask.status = status;
+                    this.editContext.status = status;
+                    this.editContext.index = index;
+                    this.isEditing = true;
+                    this.showModal = true;
+                },
+                saveTask() {
+                    if (this.isEditing) {
+                        // Mise à jour de la tâche existante
+                        this.$set(this.tasks[this.editContext.status], this.editContext.index, JSON.parse(JSON.stringify(this.currentTask)));
+                    } else {
+                        // Ajout d'une nouvelle tâche
+                        this.tasks[this.currentTask.status].push(JSON.parse(JSON.stringify(this.currentTask)));
+                    }
+                    this.closeModal();
+                },
+                closeModal() {
+                    this.showModal = false;
+                    this.newMember = "";
+                },
+                addMember() {
+                    if (this.newMember.trim() !== "") {
+                        this.currentTask.members.push(this.newMember.trim());
+                        this.newMember = "";
+                    }
+                },
+                removeMember(index) {
+                    this.currentTask.members.splice(index, 1);
+                },
+                addColumn() {
+                    // Implémentation pour ajouter une nouvelle colonne
+                    alert("Fonctionnalité d'ajout de colonne à implémenter");
+                },
+                dragStart(event, status, index) {
+                    this.dragItem.status = status;
+                    this.dragItem.index = index;
+                    event.dataTransfer.setData('text/plain', ''); // Nécessaire pour Firefox
+                },
+                dragOver(event, status) {
+                    event.preventDefault();
+                    this.dragStatus = status;
+                },
+                drop(event, status) {
+                    event.preventDefault();
+                    if (this.dragItem.status !== status) {
+                        const movedTask = this.tasks[this.dragItem.status][this.dragItem.index];
+                        this.tasks[this.dragItem.status].splice(this.dragItem.index, 1);
+                        this.tasks[status].push(movedTask);
+                        
+                        // Ici, vous pourriez ajouter un appel API pour sauvegarder le changement
+                        // axios.post('/api/tasks/update-status', {
+                        //     taskId: movedTask.id,
+                        //     newStatus: status
+                        // });
+                    }
+                    this.dragStatus = "";
+                    this.dragItem = { status: "", index: -1 };
+                },
+                dragEnd() {
+                    this.dragStatus = "";
+                    this.dragItem = { status: "", index: -1 };
+                }
+            }
+        });
+    </script>
+</body>
+</html>

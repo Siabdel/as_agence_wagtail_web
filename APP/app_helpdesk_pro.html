@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpDesk Pro - Gestion des Tickets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .ticket-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .priority-high {
+            border-left: 4px solid #ef4444;
+        }
+        .priority-medium {
+            border-left: 4px solid #f59e0b;
+        }
+        .priority-low {
+            border-left: 4px solid #10b981;
+        }
+        .status-open {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        .status-in-progress {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .status-resolved {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+        .status-closed {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div id="app" class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="sidebar bg-white w-64 md:w-72 border-r border-gray-200 flex flex-col">
+            <div class="p-4 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-indigo-600 flex items-center">
+                    <i class="fas fa-headset mr-2"></i> HelpDesk Pro
+                </h1>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto">
+                <nav class="p-4">
+                    <div class="mb-6">
+                        <button id="createTicketBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center justify-center">
+                            <i class="fas fa-plus mr-2"></i> Nouveau Ticket
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Menu</h2>
+                        <ul>
+                            <li class="mb-1">
+                                <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md bg-indigo-50 text-indigo-700">
+                                    <i class="fas fa-tachometer-alt mr-3 text-indigo-500"></i> Tableau de bord
+                                </a>
+                            </li>
+                            <li class="mb-1">
+                                <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-ticket-alt mr-3 text-gray-500"></i> Mes Tickets
+                                </a>
+                            </li>
+                            <li class="mb-1">
+                                <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-users mr-3 text-gray-500"></i> Équipe
+                                </a>
+                            </li>
+                            <li class="mb-1">
+                                <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-chart-bar mr-3 text-gray-500"></i> Rapports
+                                </a>
+                            </li>
+                            <li class="mb-1">
+                                <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-book mr-3 text-gray-500"></i> Base de connaissances
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Filtres</h2>
+                        <ul>
+                            <li class="mb-1">
+                                <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">
+                                    <span class="w-3 h-3 rounded-full bg-red-500 mr-3"></span> Haute priorité
+                                </a>
+                            </li>
+                            <li class="mb-1">
+                                <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">
+                                    <span class="w-3 h-3 rounded-full bg-yellow-500 mr-3"></span> En cours
+                                </a>
+                            </li>
+                            <li class="mb-1">
+                                <a href="#" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">
+                                    <span class="w-3 h-3 rounded-full bg-green-500 mr-3"></span> Résolus
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center">
+                    <img class="w-8 h-8 rounded-full" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User avatar">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700">Sarah Dupont</p>
+                        <p class="text-xs text-gray-500">Administrateur</p>
+                    </div>
+                    <button class="ml-auto text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-white shadow-sm">
+                <div class="px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-900">Tableau de bord</h2>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button class="p-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none">
+                                <i class="fas fa-bell"></i>
+                                <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+                            </button>
+                        </div>
+                        
+                        <div class="relative">
+                            <input type="text" placeholder="Rechercher..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Dashboard Stats -->
+            <div class="px-4 py-6 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Tickets ouverts</p>
+                                <p class="text-2xl font-semibold text-gray-900">24</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">En cours</p>
+                                <p class="text-2xl font-semibold text-gray-900">12</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Résolus</p>
+                                <p class="text-2xl font-semibold text-gray-900">48</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">En retard</p>
+                                <p class="text-2xl font-semibold text-gray-900">3</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tickets List -->
+            <div class="px-4 pb-6 sm:px-6 lg:px-8">
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-900">Tickets récents</h3>
+                        
+                        <div class="flex space-x-3">
+                            <div class="relative">
+                                <select class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 px-4 pr-8 rounded-md leading-tight focus:outline-none focus:bg-white focus:border-indigo-500">
+                                    <option>Tous les statuts</option>
+                                    <option>Ouvert</option>
+                                    <option>En cours</option>
+                                    <option>Résolu</option>
+                                    <option>Fermé</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="relative">
+                                <select class="appearance-none bg-gray-100 border border-gray-300 text-gray-700 py-2 px-4 pr-8 rounded-md leading-tight focus:outline-none focus:bg-white focus:border-indigo-500">
+                                    <option>Toutes les priorités</option>
+                                    <option>Haute</option>
+                                    <option>Moyenne</option>
+                                    <option>Basse</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="divide-y divide-gray-200">
+                        <!-- Ticket Item 1 -->
+                        <div class="ticket-card priority-high hover:bg-gray-50 cursor-pointer transition duration-150 ease-in-out">
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="status-open px-2 py-1 text-xs font-medium rounded-full mr-3">Ouvert</span>
+                                        <p class="text-sm font-medium text-indigo-600">#HD-1245</p>
+                                        <p class="ml-3 text-sm text-gray-900">Problème de connexion au VPN</p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-xs text-gray-500 mr-4">Créé il y a 2h</span>
+                                        <div class="flex -space-x-1">
+                                            <img class="w-6 h-6 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/men/32.jpg" alt="User avatar">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-user mr-1"></i>
+                                    <span class="mr-4">Jean Martin</span>
+                                    <i class="fas fa-layer-group mr-1"></i>
+                                    <span class="mr-4">IT Support</span>
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <span>Échéance: Aujourd'hui</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ticket Item 2 -->
+                        <div class="ticket-card priority-medium hover:bg-gray-50 cursor-pointer transition duration-150 ease-in-out">
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="status-in-progress px-2 py-1 text-xs font-medium rounded-full mr-3">En cours</span>
+                                        <p class="text-sm font-medium text-indigo-600">#HD-1244</p>
+                                        <p class="ml-3 text-sm text-gray-900">Mise à jour du logiciel comptable</p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-xs text-gray-500 mr-4">Créé il y a 1 jour</span>
+                                        <div class="flex -space-x-1">
+                                            <img class="w-6 h-6 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/women/63.jpg" alt="User avatar">
+                                            <img class="w-6 h-6 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/men/45.jpg" alt="User avatar">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-user mr-1"></i>
+                                    <span class="mr-4">Marie Dubois</span>
+                                    <i class="fas fa-layer-group mr-1"></i>
+                                    <span class="mr-4">Comptabilité</span>
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <span>Échéance: 2 jours</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ticket Item 3 -->
+                        <div class="ticket-card priority-low hover:bg-gray-50 cursor-pointer transition duration-150 ease-in-out">
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="status-resolved px-2 py-1 text-xs font-medium rounded-full mr-3">Résolu</span>
+                                        <p class="text-sm font-medium text-indigo-600">#HD-1243</p>
+                                        <p class="ml-3 text-sm text-gray-900">Demande d'accès au dossier partagé</p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-xs text-gray-500 mr-4">Créé il y a 2 jours</span>
+                                        <div class="flex -space-x-1">
+                                            <img class="w-6 h-6 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/men/22.jpg" alt="User avatar">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-user mr-1"></i>
+                                    <span class="mr-4">Thomas Leroy</span>
+                                    <i class="fas fa-layer-group mr-1"></i>
+                                    <span class="mr-4">IT Support</span>
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <span>Échéance: Hier</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ticket Item 4 -->
+                        <div class="ticket-card priority-high hover:bg-gray-50 cursor-pointer transition duration-150 ease-in-out">
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="status-open px-2 py-1 text-xs font-medium rounded-full mr-3">Ouvert</span>
+                                        <p class="text-sm font-medium text-indigo-600">#HD-1242</p>
+                                        <p class="ml-3 text-sm text-gray-900">Serveur mail inaccessible</p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-xs text-gray-500 mr-4">Créé il y a 3 jours</span>
+                                        <div class="flex -space-x-1">
+                                            <img class="w-6 h-6 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/men/76.jpg" alt="User avatar">
+                                            <img class="w-6 h-6 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/women/28.jpg" alt="User avatar">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-user mr-1"></i>
+                                    <span class="mr-4">Lucie Petit</span>
+                                    <i class="fas fa-layer-group mr-1"></i>
+                                    <span class="mr-4">Infrastructure</span>
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <span>Échéance: En retard</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Précédent
+                            </a>
+                            <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Suivant
+                            </a>
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Affichage de
+                                    <span class="font-medium">1</span>
+                                    à
+                                    <span class="font-medium">4</span>
+                                    sur
+                                    <span class="font-medium">24</span>
+                                    tickets
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <span class="sr-only">Précédent</span>
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                    <a href="#" aria-current="page" class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                        1
+                                    </a>
+                                    <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                        2
+                                    </a>
+                                    <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                        3
+                                    </a>
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                        ...
+                                    </span>
+                                    <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                        8
+                                    </a>
+                                    <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <span class="sr-only">Suivant</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Create Ticket Modal -->
+        <div id="createTicketModal" class="fixed inset-0 overflow-hidden z-50 hidden">
+            <div class="absolute inset-0 overflow-hidden">
+                <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+                    <div class="w-screen max-w-md">
+                        <div class="h-full flex flex-col bg-white shadow-xl overflow-y-scroll">
+                            <div class="flex-1 py-6 overflow-y-auto px-4 sm:px-6">
+                                <div class="flex items-start justify-between">
+                                    <h2 class="text-lg font-medium text-gray-900">Nouveau Ticket</h2>
+                                    <div class="ml-3 h-7 flex items-center">
+                                        <button id="closeModalBtn" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            <span class="sr-only">Fermer</span>
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-8">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <label for="subject" class="block text-sm font-medium text-gray-700">Sujet</label>
+                                            <div class="mt-1">
+                                                <input type="text" id="subject" name="subject" class="block w-full shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md">
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                                            <div class="mt-1">
+                                                <textarea id="description" name="description" rows="4" class="block w-full shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 rounded-md"></textarea>
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="category" class="block text-sm font-medium text-gray-700">Catégorie</label>
+                                            <select id="category" name="category" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                                <option>IT Support</option>
+                                                <option>Comptabilité</option>
+                                                <option>Ressources Humaines</option>
+                                                <option>Infrastructure</option>
+                                                <option>Autre</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="priority" class="block text-sm font-medium text-gray-700">Priorité</label>
+                                            <select id="priority" name="priority" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                                <option>Basse</option>
+                                                <option>Moyenne</option>
+                                                <option>Haute</option>
+                                                <option>Urgent</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="assignee" class="block text-sm font-medium text-gray-700">Assigner à</label>
+                                            <select id="assignee" name="assignee" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                                <option>Automatique</option>
+                                                <option>Jean Martin (IT Support)</option>
+                                                <option>Marie Dubois (Comptabilité)</option>
+                                                <option>Thomas Leroy (IT Support)</option>
+                                                <option>Lucie Petit (Infrastructure)</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="attachments" class="block text-sm font-medium text-gray-700">Pièces jointes</label>
+                                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                                <div class="space-y-1 text-center">
+                                                    <div class="flex text-sm text-gray-600">
+                                                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                                            <span>Téléverser un fichier</span>
+                                                            <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                                                        </label>
+                                                        <p class="pl-1">ou glisser-déposer</p>
+                                                    </div>
+                                                    <p class="text-xs text-gray-500">PNG, JPG, PDF jusqu'à 10MB</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-gray-200 py-6 px-4 sm:px-6">
+                                <div class="flex justify-between">
+                                    <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Annuler
+                                    </button>
+                                    <button type="button" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Créer le ticket
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal handling
+        const createTicketBtn = document.getElementById('createTicketBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modal = document.getElementById('createTicketModal');
+        
+        createTicketBtn.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+        
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+        
+        // Simulate ticket click
+        const ticketCards = document.querySelectorAll('.ticket-card');
+        ticketCards.forEach(card => {
+            card.addEventListener('click', () => {
+                alert('Ticket détaillé serait affiché ici avec historique et commentaires');
+            });
+        });
+        
+        // Responsive sidebar toggle (would be better with Vue.js)
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('block');
+        }
+    </script>
+</body>
+</html>

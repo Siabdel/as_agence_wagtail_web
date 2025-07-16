@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devis Plomberie Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .slide-fade-enter-active {
+            transition: all 0.3s ease-out;
+        }
+        .slide-fade-leave-active {
+            transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+        }
+        .slide-fade-enter-from,
+        .slide-fade-leave-to {
+            transform: translateX(20px);
+            opacity: 0;
+        }
+        .rotate-enter-active {
+            transition: all 0.3s ease;
+        }
+        .rotate-leave-active {
+            transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+        }
+        .rotate-enter-from,
+        .rotate-leave-to {
+            opacity: 0;
+            transform: rotate(90deg);
+        }
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        .fade-enter-from,
+        .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex items-center mb-4 md:mb-0">
+                        <i class="fas fa-tools text-3xl mr-3"></i>
+                        <h1 class="text-2xl font-bold">Devis Plomberie Pro</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="showClientForm = !showClientForm" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-user mr-2"></i> Client
+                        </button>
+                        <button @click="printDevis" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-print mr-2"></i> Imprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Client Form -->
+        <transition name="slide-fade">
+            <div v-if="showClientForm" class="container mx-auto px-4 py-6">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4 text-blue-600">Informations client</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Nom</label>
+                            <input v-model="client.nom" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Prénom</label>
+                            <input v-model="client.prenom" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Email</label>
+                            <input v-model="client.email" type="email" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Téléphone</label>
+                            <input v-model="client.telephone" type="tel" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 mb-2">Adresse</label>
+                            <textarea v-model="client.adresse" rows="2" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <main class="container mx-auto px-4 py-6">
+            <!-- Devis Info -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Numéro de devis</label>
+                        <input v-model="devis.numero" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Date</label>
+                        <input v-model="devis.date" type="date" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Validité (jours)</label>
+                        <input v-model="devis.validite" type="number" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Add Items -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex flex-col md:flex-row gap-4 mb-4">
+                    <div class="flex-1 relative">
+                        <input v-model="searchTerm" @input="filterItems" type="text" placeholder="Rechercher un article ou une prestation..." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    <button @click="showAddItemModal = true" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-plus mr-2"></i> Ajouter un article
+                    </button>
+                </div>
+
+                <!-- Filtered Items -->
+                <div v-if="filteredItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="item in filteredItems" :key="item.id" @click="addToDevis(item)" class="bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg p-4 cursor-pointer transition-colors">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-medium text-blue-700">{{ item.nom }}</h3>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{{ item.type }}</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mt-1">{{ item.description }}</p>
+                        <div class="mt-2 flex justify-between items-center">
+                            <span class="text-gray-700 font-medium">{{ item.prix }} €</span>
+                            <span v-if="item.type === 'MO'" class="text-sm text-gray-500">{{ item.duree }}h</span>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="text-center py-8 text-gray-500">
+                    <i class="fas fa-search fa-2x mb-2"></i>
+                    <p>Aucun résultat trouvé</p>
+                </div>
+            </div>
+
+            <!-- Devis Items -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix unitaire</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <transition-group name="fade">
+                                <tr v-for="(item, index) in devis.items" :key="item.id + '-' + index">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ item.nom }}</div>
+                                        <div v-if="item.description" class="text-sm text-gray-500">{{ item.description }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <span :class="{'bg-blue-100 text-blue-800': item.type === 'MO', 'bg-green-100 text-green-800': item.type === 'Matériel'}" class="px-2 py-1 rounded-full text-xs font-medium">
+                                            {{ item.type }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input v-model.number="item.quantite" @change="updateTotal" type="number" min="1" class="w-20 px-2 py-1 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.prix }} €</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ (item.prix * item.quantite).toFixed(2) }} €</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button @click="removeFromDevis(index)" class="text-red-600 hover:text-red-900">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </transition-group>
+                            <tr v-if="devis.items.length === 0">
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                    Aucun article ajouté au devis
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-gray-50">
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-right text-sm font-medium text-gray-500">Total HT</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ totalHT.toFixed(2) }} €</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-right text-sm font-medium text-gray-500">TVA (20%)</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ tva.toFixed(2) }} €</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-right text-sm font-medium text-gray-500">Total TTC</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-lg font-bold text-blue-600">{{ totalTTC.toFixed(2) }} €</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-blue-600">Notes et conditions</h2>
+                <textarea v-model="devis.notes" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ajoutez des notes ou conditions particulières..."></textarea>
+            </div>
+        </main>
+
+        <!-- Add Item Modal -->
+        <transition name="fade">
+            <div v-if="showAddItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+                    <div class="px-6 py-4 border-b">
+                        <h3 class="text-lg font-semibold text-gray-900">Ajouter un nouvel article</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Type</label>
+                            <select v-model="newItem.type" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="Matériel">Matériel</option>
+                                <option value="MO">Main d'œuvre</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Nom</label>
+                            <input v-model="newItem.nom" type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Description</label>
+                            <textarea v-model="newItem.description" rows="2" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Prix unitaire (€)</label>
+                            <input v-model.number="newItem.prix" type="number" step="0.01" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div v-if="newItem.type === 'MO'" class="mb-4">
+                            <label class="block text-gray-700 mb-2">Durée (heures)</label>
+                            <input v-model.number="newItem.duree" type="number" step="0.5" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 border-t flex justify-end space-x-3">
+                        <button @click="showAddItemModal = false" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                            Annuler
+                        </button>
+                        <button @click="saveNewItem" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Edit Items Modal -->
+        <transition name="fade">
+            <div v-if="showEditItemsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                    <div class="px-6 py-4 border-b">
+                        <h3 class="text-lg font-semibold text-gray-900">Gérer la base d'articles</h3>
+                    </div>
+                    <div class="overflow-y-auto flex-1 p-6">
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-medium text-gray-700">Articles de plomberie</h4>
+                                <button @click="showAddItemModal = true" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg">
+                                    <i class="fas fa-plus mr-1"></i> Ajouter
+                                </button>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg overflow-hidden">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr v-for="item in items" :key="item.id">
+                                            <td class="px-4 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">{{ item.nom }}</div>
+                                                <div v-if="item.description" class="text-sm text-gray-500">{{ item.description }}</div>
+                                            </td>
+                                            <td class="px-4 py-4 whitespace-nowrap">
+                                                <span :class="{'bg-blue-100 text-blue-800': item.type === 'MO', 'bg-green-100 text-green-800': item.type === 'Matériel'}" class="px-2 py-1 rounded-full text-xs font-medium">
+                                                    {{ item.type }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.prix }} €</td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button @click="editItem(item)" class="text-blue-600 hover:text-blue-900 mr-3">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button @click="confirmDeleteItem(item.id)" class="text-red-600 hover:text-red-900">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 border-t flex justify-end">
+                        <button @click="showEditItemsModal = false" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Fermer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Floating Action Button -->
+        <div class="fixed bottom-6 right-6 z-40">
+            <div class="flex flex-col items-end space-y-3">
+                <transition name="rotate">
+                    <button v-if="showFABSubMenu" @click="showEditItemsModal = true" class="bg-green-600 hover:bg-green-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center">
+                        <i class="fas fa-boxes"></i>
+                    </button>
+                </transition>
+                <transition name="rotate">
+                    <button v-if="showFABSubMenu" @click="addCustomItem" class="bg-purple-600 hover:bg-purple-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                </transition>
+                <button @click="showFABSubMenu = !showFABSubMenu" class="bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl">
+                    <i :class="{'fa-plus': !showFABSubMenu, 'fa-times': showFABSubMenu}" class="fas transition-transform duration-300"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+
+        createApp({
+            setup() {
+                // Client data
+                const client = ref({
+                    nom: '',
+                    prenom: '',
+                    email: '',
+                    telephone: '',
+                    adresse: ''
+                });
+
+                // Devis data
+                const devis = ref({
+                    numero: 'DEV-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 1000),
+                    date: new Date().toISOString().split('T')[0],
+                    validite: 30,
+                    items: [],
+                    notes: 'Paiement à 50% à la commande, solde à la livraison.\nGarantie pièces et main d\'œuvre: 2 ans.'
+                });
+
+                // Items database
+                const items = ref([
+                    { id: 1, type: 'Matériel', nom: 'Tuyau PER 16mm', description: 'Tuyau polyéthylène réticulé diamètre 16mm', prix: 1.20, duree: null },
+                    { id: 2, type: 'Matériel', nom: 'Raccord laiton 16mm', description: 'Raccord à compression pour PER 16mm', prix: 2.50, duree: null },
+                    { id: 3, type: 'Matériel', nom: 'Robinet vanne 1/2"', description: 'Robinet vanne à boisseau sphérique laiton', prix: 18.90, duree: null },
+                    { id: 4, type: 'Matériel', nom: 'Siphon inox', description: 'Siphon pour évier en inox chromé', prix: 24.50, duree: null },
+                    { id: 5, type: 'Matériel', nom: 'WC suspendu', description: 'Pack WC suspendu avec réservoir encastrable', prix: 299.00, duree: null },
+                    { id: 6, type: 'MO', nom: 'Pose WC', description: 'Pose complète d\'un WC', prix: 180.00, duree: 3 },
+                    { id: 7, type: 'MO', nom: 'Pose lavabo', description: 'Pose et raccordement d\'un lavabo', prix: 120.00, duree: 2 },
+                    { id: 8, type: 'MO', nom: 'Débouchage canalisation', description: 'Intervention pour débouchage', prix: 90.00, duree: 1.5 },
+                    { id: 9, type: 'MO', nom: 'Installation arrosage', description: 'Installation système arrosage automatique', prix: 350.00, duree: 5 },
+                    { id: 10, type: 'Matériel', nom: 'Programmateur arrosage', description: 'Programmateur 6 voies avec sonde pluie', prix: 89.90, duree: null },
+                    { id: 11, type: 'Matériel', nom: 'Arroseur turbo', description: 'Arroseur escamotable 360° portée 5m', prix: 32.50, duree: null },
+                    { id: 12, type: 'MO', nom: 'Détection fuite', description: 'Recherche et localisation de fuite', prix: 150.00, duree: 2 }
+                ]);
+
+                // UI states
+                const showClientForm = ref(false);
+                const showAddItemModal = ref(false);
+                const showEditItemsModal = ref(false);
+                const showFABSubMenu = ref(false);
+                const searchTerm = ref('');
+                const filteredItems = ref([]);
+
+                // New item form
+                const newItem = ref({
+                    type: 'Matériel',
+                    nom: '',
+                    description: '',
+                    prix: 0,
+                    duree: null
+                });
+
+                // Computed totals
+                const totalHT = computed(() => {
+                    return devis.value.items.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+                });
+
+                const tva = computed(() => {
+                    return totalHT.value * 0.2;
+                });
+
+                const totalTTC = computed(() => {
+                    return totalHT.value + tva.value;
+                });
+
+                // Methods
+                const filterItems = () => {
+                    if (!searchTerm.value) {
+                        filteredItems.value = items.value;
+                        return;
+                    }
+                    const term = searchTerm.value.toLowerCase();
+                    filteredItems.value = items.value.filter(item => 
+                        item.nom.toLowerCase().includes(term) || 
+                        (item.description && item.description.toLowerCase().includes(term))
+                    );
+                };
+
+                const addToDevis = (item) => {
+                    const existingItemIndex = devis.value.items.findIndex(i => i.id === item.id && i.prix === item.prix);
+                    if (existingItemIndex !== -1) {
+                        devis.value.items[existingItemIndex].quantite += 1;
+                    } else {
+                        devis.value.items.push({
+                            ...item,
+                            quantite: 1
+                        });
+                    }
+                    updateTotal();
+                };
+
+                const removeFromDevis = (index) => {
+                    devis.value.items.splice(index, 1);
+                    updateTotal();
+                };
+
+                const updateTotal = () => {
+                    // Just triggers computed properties update
+                };
+
+                const addCustomItem = () => {
+                    showFABSubMenu.value = false;
+                    newItem.value = {
+                        type: 'Matériel',
+                        nom: '',
+                        description: '',
+                        prix: 0,
+                        duree: null
+                    };
+                    showAddItemModal.value = true;
+                };
+
+                const saveNewItem = () => {
+                    if (!newItem.value.nom || newItem.value.prix <= 0) return;
+                    
+                    const newId = Math.max(...items.value.map(i => i.id), 0) + 1;
+                    const itemToSave = {
+                        id: newId,
+                        type: newItem.value.type,
+                        nom: newItem.value.nom,
+                        description: newItem.value.description,
+                        prix: parseFloat(newItem.value.prix),
+                        duree: newItem.value.type === 'MO' ? parseFloat(newItem.value.duree) : null
+                    };
+                    
+                    items.value.push(itemToSave);
+                    showAddItemModal.value = false;
+                    filterItems();
+                };
+
+                const editItem = (item) => {
+                    newItem.value = {...item};
+                    showEditItemsModal.value = false;
+                    showAddItemModal.value = true;
+                };
+
+                const confirmDeleteItem = (id) => {
+                    if (confirm('Supprimer cet article définitivement ?')) {
+                        items.value = items.value.filter(item => item.id !== id);
+                        // Also remove from devis if present
+                        devis.value.items = devis.value.items.filter(item => item.id !== id);
+                    }
+                };
+
+                const printDevis = () => {
+                    // In a real app, this would generate a PDF or printable version
+                    alert('Fonction d\'impression - Générer un PDF dans une application réelle');
+                };
+
+                // Initialize filtered items
+                filterItems();
+
+                return {
+                    client,
+                    devis,
+                    items,
+                    showClientForm,
+                    showAddItemModal,
+                    showEditItemsModal,
+                    showFABSubMenu,
+                    searchTerm,
+                    filteredItems,
+                    newItem,
+                    totalHT,
+                    tva,
+                    totalTTC,
+                    filterItems,
+                    addToDevis,
+                    removeFromDevis,
+                    updateTotal,
+                    addCustomItem,
+                    saveNewItem,
+                    editItem,
+                    confirmDeleteItem,
+                    printDevis
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
