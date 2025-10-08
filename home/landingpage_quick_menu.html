@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick - Nos Menus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hero-image {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://www.quick.fr/sites/default/files/styles/header_mobile/public/2021-09/header-menu.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 60vh;
+        }
+        
+        .menu-card {
+            transition: all 0.3s ease;
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        
+        .menu-card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-item:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #E30613;
+            transition: width 0.3s;
+        }
+        
+        .nav-item:hover:after {
+            width: 100%;
+        }
+        
+        .dropdown-menu {
+            display: none;
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-image {
+                height: 40vh;
+            }
+        }
+    </style>
+</head>
+<body class="font-sans">
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="#" class="text-2xl font-bold text-red-600">QUICK</a>
+            </div>
+            
+            <nav class="hidden md:flex space-x-8">
+                <div class="dropdown relative">
+                    <a href="#" class="nav-item text-gray-800 hover:text-red-600 py-4">NOS MENUS</a>
+                    <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                        <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Tous nos menus</a>
+                        <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Nouveautés</a>
+                        <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Best-sellers</a>
+                    </div>
+                </div>
+                <a href="#" class="nav-item text-gray-800 hover:text-red-600 py-4">NOS BURGERS</a>
+                <a href="#" class="nav-item text-gray-800 hover:text-red-600 py-4">NOS SANDWICHS</a>
+                <a href="#" class="nav-item text-gray-800 hover:text-red-600 py-4">NOS SALADES</a>
+                <a href="#" class="nav-item text-gray-800 hover:text-red-600 py-4">NOS DESSERTS</a>
+            </nav>
+            
+            <div class="flex items-center space-x-4">
+                <a href="#" class="text-gray-800 hover:text-red-600">
+                    <i class="fas fa-search"></i>
+                </a>
+                <a href="#" class="text-gray-800 hover:text-red-600">
+                    <i class="fas fa-shopping-basket"></i>
+                </a>
+                <button class="md:hidden text-gray-800">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-image flex items-center justify-center text-white">
+        <div class="text-center px-4">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">NOS MENUS</h1>
+            <p class="text-xl md:text-2xl mb-8">Découvrez toutes nos offres menu</p>
+            <a href="#menus" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-medium transition duration-300 inline-block">
+                VOIR LES MENUS
+            </a>
+        </div>
+    </section>
+
+    <!-- Menu Categories -->
+    <section class="bg-gray-100 py-12">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">NOS CATÉGORIES DE MENUS</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-burger.jpg" alt="Menus Burger" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENUS BURGER</h3>
+                        <p class="text-gray-600 mb-4">Découvrez nos burgers emblématiques accompagnés de frites et d'une boisson.</p>
+                        <a href="#" class="text-red-600 font-medium hover:underline">Découvrir</a>
+                    </div>
+                </div>
+                
+                <div class="menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-sandwich.jpg" alt="Menus Sandwich" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENUS SANDWICH</h3>
+                        <p class="text-gray-600 mb-4">Nos délicieux sandwiches accompagnés de frites et d'une boisson.</p>
+                        <a href="#" class="text-red-600 font-medium hover:underline">Découvrir</a>
+                    </div>
+                </div>
+                
+                <div class="menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-salade.jpg" alt="Menus Salade" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENUS SALADE</h3>
+                        <p class="text-gray-600 mb-4">Nos salades fraîches et équilibrées accompagnées d'une boisson.</p>
+                        <a href="#" class="text-red-600 font-medium hover:underline">Découvrir</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- All Menus -->
+    <section id="menus" class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">TOUS NOS MENUS</h2>
+            
+            <div class="flex justify-center mb-8">
+                <div class="inline-flex rounded-md shadow-sm">
+                    <button type="button" class="filter-btn px-4 py-2 text-sm font-medium rounded-l-lg bg-red-600 text-white" data-filter="all">
+                        TOUS
+                    </button>
+                    <button type="button" class="filter-btn px-4 py-2 text-sm font-medium bg-gray-200 text-gray-800" data-filter="burger">
+                        BURGER
+                    </button>
+                    <button type="button" class="filter-btn px-4 py-2 text-sm font-medium bg-gray-200 text-gray-800" data-filter="sandwich">
+                        SANDWICH
+                    </button>
+                    <button type="button" class="filter-btn px-4 py-2 text-sm font-medium rounded-r-lg bg-gray-200 text-gray-800" data-filter="salade">
+                        SALADE
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Menu Item 1 -->
+                <div class="menu-item burger menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-big-bacon.jpg" alt="Menu Big Bacon" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENU BIG BACON</h3>
+                        <p class="text-gray-600 mb-4">Burger, frites et boisson au choix.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-red-600 font-bold">7,90€</span>
+                            <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium transition duration-300">
+                                AJOUTER
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Menu Item 2 -->
+                <div class="menu-item burger menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-big-chicken.jpg" alt="Menu Big Chicken" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENU BIG CHICKEN</h3>
+                        <p class="text-gray-600 mb-4">Burger, frites et boisson au choix.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-red-600 font-bold">7,50€</span>
+                            <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium transition duration-300">
+                                AJOUTER
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Menu Item 3 -->
+                <div class="menu-item sandwich menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-croque-monsieur.jpg" alt="Menu Croque Monsieur" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENU CROQUE MONSIEUR</h3>
+                        <p class="text-gray-600 mb-4">Sandwich, frites et boisson au choix.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-red-600 font-bold">6,90€</span>
+                            <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium transition duration-300">
+                                AJOUTER
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Menu Item 4 -->
+                <div class="menu-item sandwich menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-poulet-crudites.jpg" alt="Menu Poulet Crudités" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENU POULET CRUDITÉS</h3>
+                        <p class="text-gray-600 mb-4">Sandwich, frites et boisson au choix.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-red-600 font-bold">7,20€</span>
+                            <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium transition duration-300">
+                                AJOUTER
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Menu Item 5 -->
+                <div class="menu-item salade menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-salade-cesar.jpg" alt="Menu Salade César" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENU SALADE CÉSAR</h3>
+                        <p class="text-gray-600 mb-4">Salade et boisson au choix.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-red-600 font-bold">7,40€</span>
+                            <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium transition duration-300">
+                                AJOUTER
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Menu Item 6 -->
+                <div class="menu-item salade menu-card bg-white rounded-lg overflow-hidden shadow-lg">
+                    <img src="https://www.quick.fr/sites/default/files/styles/product_teaser/public/2021-09/menu-salade-nicoise.jpg" alt="Menu Salade Niçoise" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">MENU SALADE NIÇOISE</h3>
+                        <p class="text-gray-600 mb-4">Salade et boisson au choix.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-red-600 font-bold">7,40€</span>
+                            <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium transition duration-300">
+                                AJOUTER
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="bg-red-600 text-white py-12">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold mb-4">NEWSLETTER</h2>
+            <p class="text-xl mb-8">Recevez nos offres exclusives et nouveautés directement dans votre boîte mail</p>
+            
+            <form class="max-w-md mx-auto">
+                <div class="flex">
+                    <input type="email" placeholder="Votre email" class="flex-grow px-4 py-3 rounded-l-lg focus:outline-none text-gray-800">
+                    <button type="submit" class="bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-r-lg font-medium transition duration-300">
+                        S'INSCRIRE
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">QUICK</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-red-400">Notre histoire</a></li>
+                        <li><a href="#" class="hover:text-red-400">Nos engagements</a></li>
+                        <li><a href="#" class="hover:text-red-400">Recrutement</a></li>
+                        <li><a href="#" class="hover:text-red-400">Franchise</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">INFORMATIONS</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-red-400">Mentions légales</a></li>
+                        <li><a href="#" class="hover:text-red-400">CGU</a></li>
+                        <li><a href="#" class="hover:text-red-400">Politique de confidentialité</a></li>
+                        <li><a href="#" class="hover:text-red-400">Cookies</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">CONTACT</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-red-400">Nous contacter</a></li>
+                        <li><a href="#" class="hover:text-red-400">FAQ</a></li>
+                        <li><a href="#" class="hover:text-red-400">Restaurants</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">SUIVEZ-NOUS</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-2xl hover:text-red-400"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-2xl hover:text-red-400"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-2xl hover:text-red-400"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-2xl hover:text-red-400"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p>© 2023 Quick. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            // Animation for menu cards
+            $('.menu-card').each(function(index) {
+                $(this).delay(100 * index).queue(function() {
+                    $(this).addClass('visible').dequeue();
+                });
+            });
+            
+            // Filter functionality
+            $('.filter-btn').click(function() {
+                $('.filter-btn').removeClass('bg-red-600 text-white').addClass('bg-gray-200 text-gray-800');
+                $(this).removeClass('bg-gray-200 text-gray-800').addClass('bg-red-600 text-white');
+                
+                const filter = $(this).data('filter');
+                
+                if (filter === 'all') {
+                    $('.menu-item').fadeIn(300);
+                } else {
+                    $('.menu-item').hide();
+                    $(`.menu-item.${filter}`).fadeIn(300);
+                }
+            });
+            
+            // Mobile menu toggle
+            $('.fa-bars').click(function() {
+                $('nav').toggleClass('hidden');
+            });
+            
+            // Smooth scrolling
+            $('a[href*="#"]').on('click', function(e) {
+                e.preventDefault();
+                
+                $('html, body').animate(
+                    {
+                        scrollTop: $($(this).attr('href')).offset().top,
+                    },
+                    500,
+                    'linear'
+                );
+            });
+        });
+    </script>
+</body>
+</html>

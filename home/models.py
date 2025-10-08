@@ -144,3 +144,19 @@ class SiteSettings(models.Model):
 
     def __str__(self):
         return self.site_name
+    
+    
+
+from wagtail.models import Page
+from wagtail.fields import StreamField
+from wagtail.admin.panels import FieldPanel
+from home.blocks import ServiceCardBlock
+
+class SolutionsPage(Page):
+    body = StreamField([
+        ('service_cards', ServiceCardBlock()),
+    ], use_json_field=True, blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel('body'),
+    ]

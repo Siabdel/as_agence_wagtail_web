@@ -1,0 +1,11 @@
+<div class="card h-100 text-center service-card shadow-sm">
+    <a href="{{ self.link_url }}" class="stretched-link text-decoration-none text-dark" aria-label="En savoir plus sur {{ self.title }}"></a>
+    <div class="card-body p-4">
+        <div class="icon-circle mx-auto mb-3">
+            <img src="{{ self.icon.url }}" alt="{{ self.title }} Icon" />
+        </div>
+        <h5 class="card-title fw-bold">{{ self.title }}</h5>
+        <p class="card-text initial-text">{{ self.description }}</p>
+        <p class="card-text hover-text text-muted small">{{ self.detailed_description|richtext }}</p>
+    </div>
+</div>
